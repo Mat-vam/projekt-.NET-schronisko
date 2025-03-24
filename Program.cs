@@ -1,7 +1,15 @@
+using projekt_.NET_schronisko.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<AnimalContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
+});
 
 var app = builder.Build();
 
