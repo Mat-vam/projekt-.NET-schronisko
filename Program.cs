@@ -11,6 +11,11 @@ builder.Services.AddDbContext<AnimalContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
 });
 
+builder.Services.AddDbContext<ProductContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
