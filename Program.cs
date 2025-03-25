@@ -6,12 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<AnimalContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
-});
-
-builder.Services.AddDbContext<ProductContext>(options =>
+builder.Services.AddDbContext<ShelterContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
 });
