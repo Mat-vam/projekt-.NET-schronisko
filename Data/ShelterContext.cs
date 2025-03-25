@@ -4,9 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace projekt_.NET_schronisko.Data
 {
-    public class ProductContext : DbContext
+    public class ShelterContext : DbContext
     {
-        public ProductContext(DbContextOptions options) : base(options) { }
+        public ShelterContext(DbContextOptions options) : base(options) { }
         public DbSet<Product> Product { get; set; }
+        public DbSet<Animal> Animal { get; set; }
     }
 }
