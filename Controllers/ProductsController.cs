@@ -20,9 +20,26 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(decimal? minPrice, decimal? maxPrice, string category)
         {
-            return View(await _context.Product.ToListAsync());
+            var products = _context.Product.AsQueryable();
+
+            if (minPrice.HasValue)
+            {
+                products = products.Where(p => p.Price >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                products = products.Where(p => p.Price <= maxPrice.Value);
+            }
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                products = products.Where(p => p.Category == category);
+            }
+
+            return View(await products.ToListAsync());
         }
 
         // GET: Products/Details/5
@@ -46,6 +63,10 @@ namespace projekt_.NET_schronisko.Controllers
         // GET: Products/Create
         public IActionResult Create()
         {
+            var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
+
+            ViewBag.Categories = new SelectList(categories);
+
             return View();
         }
 
@@ -54,7 +75,7 @@ namespace projekt_.NET_schronisko.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Price")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,Name,Price,Category")] Product product)
         {
             if (ModelState.IsValid)
             {
@@ -62,6 +83,10 @@ namespace projekt_.NET_schronisko.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            
+            var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
+            ViewBag.Categories = new SelectList(categories);
+            
             return View(product);
         }
 
@@ -78,6 +103,11 @@ namespace projekt_.NET_schronisko.Controllers
             {
                 return NotFound();
             }
+
+            var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
+
+            ViewBag.Categories = new SelectList(categories);
+
             return View(product);
         }
 
@@ -86,7 +116,7 @@ namespace projekt_.NET_schronisko.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,Name,Price")] Product product)
+        public async Task<IActionResult> Edit(string id, [Bind("Id,Name,Price,Category")] Product product)
         {
             if (id != product.Id)
             {
@@ -113,6 +143,11 @@ namespace projekt_.NET_schronisko.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
+
+            ViewBag.Categories = new SelectList(categories);
+
             return View(product);
         }
 

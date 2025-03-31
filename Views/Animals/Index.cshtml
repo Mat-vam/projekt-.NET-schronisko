@@ -51,3 +51,20 @@
 }
     </tbody>
 </table>
+<form method="get">
+    <label>Gatunek:</label>
+    <select name="species" class="form-control">
+        <option value="">Wszystkie</option>
+        <option value="pies">Pies</option>
+        <option value="kot">Kot</option>
+    </select>
+
+    <label>Status adopcji:</label>
+    <select name="adopted" class="form-control">
+        <option value="">Wszystkie</option>
+        <option value="true">Adoptowany</option>
+        <option value="false">Nieadoptowany</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary mt-2">Filtruj</button>
+</form>

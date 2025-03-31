@@ -20,9 +20,21 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
         // GET: Animals
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string species, bool? adopted)
         {
-            return View(await _context.Animal.ToListAsync());
+            var animals = _context.Animal.AsQueryable();
+
+            if (!string.IsNullOrEmpty(species))
+            {
+                animals = animals.Where(a => a.Species.ToLower() == species.ToLower());
+            }
+
+            if (adopted.HasValue)
+            {
+                animals = animals.Where(a => a.Status == (adopted.Value ? "adoptowany" : "nieadoptowany"));
+            }
+
+            return View(await animals.ToListAsync());
         }
 
         // GET: Animals/Details/5

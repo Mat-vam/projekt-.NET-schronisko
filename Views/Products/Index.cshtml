@@ -18,6 +18,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.Price)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Category)
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -31,6 +34,9 @@
                 @Html.DisplayFor(modelItem => item.Price)
             </td>
             <td>
+                @Html.DisplayFor(modelItem => item.Category)
+            </td>
+            <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
@@ -39,3 +45,21 @@
 }
     </tbody>
 </table>
+
+<form method="get">
+    <label>Minimalna cena:</label>
+    <input type="number" name="minPrice" class="form-control" step="0.01" />
+
+    <label>Maksymalna cena:</label>
+    <input type="number" name="maxPrice" class="form-control" step="0.01" />
+
+    <label>Kategoria:</label>
+    <select name="category" class="form-control">
+        <option value="">Wszystkie</option>
+        <option value="Zabawka">Zabawka</option>
+        <option value="Karma">Karma</option>
+        <option value="Akcesoria">Akcesoria</option>
+    </select>
+
+    <button typeof="sumbit" class="btn btn-primary mt-2">Filtruj</button>
+</form>
