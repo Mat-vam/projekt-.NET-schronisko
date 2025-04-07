@@ -1,0 +1,26 @@
+﻿@model List<projekt_.NET_schronisko.Models.Users>
+
+<h2>Zarządzanie użytkownikami</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Imię i nazwisko</th>
+            <th>Akcje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>@user.FullName</td>
+                <td>
+                    <a href="@Url.Action("Details", "UserManagement", new { id = user.Id })">Szczegóły</a> |
+                    <a href="@Url.Action("Delete", "UserManagement", new { id = user.Id })" onclick="return confirm('Na pewno chcesz usunąć tego użytkownika?');">Usuń</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
