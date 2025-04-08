@@ -1,0 +1,42 @@
+﻿@model IEnumerable<projekt_.NET_schronisko.Models.Orders>
+
+<h2>Przeglądaj Zamówienia</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Data zamówienia</th>
+            <th>Status</th>
+            <th>Produkty</th>
+            <th>Opcje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <td>@order.Id</td>
+                <td>@order.DataZamowienia</td>
+                <td>
+                    <span class="badge @(order.Status == "Nowe" ? "bg-warning" : order.Status == "Realizowane" ? "bg-info" : order.Status == "Zrealizowane" ? "bg-success" : "bg-danger")">
+                        @order.Status
+                    </span>
+                </td>
+                <td>
+                    <ul>
+                        @foreach (var orderProduct in order.ProduktyZamowienia)
+                        {
+                            <li>@orderProduct.Product.Name - Ilość: @orderProduct.Ilosc</li>
+                        }
+                    </ul>
+                </td>
+                <td>
+                    <a href="@Url.Action("UpdateStatus", "Orders", new { id = order.Id, newStatus = "Realizowane" })" class="btn btn-info btn-sm">W realizacji</a>
+                    <a href="@Url.Action("UpdateStatus", "Orders", new { id = order.Id, newStatus = "Zrealizowane" })" class="btn btn-success btn-sm">Zrealizowane</a>
+                    <a href="@Url.Action("UpdateStatus", "Orders", new { id = order.Id, newStatus = "Anulowane" })" class="btn btn-danger btn-sm">Anulowane</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -9,5 +9,7 @@ namespace projekt_.NET_schronisko.Models
         public decimal Price { get; set; }
         [Required]
         public string Category { get; set; }
+        public ICollection<OrderProduct> ProduktyZamowienia { get; set; }
+
     }
 }
