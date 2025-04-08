@@ -184,6 +184,52 @@ namespace projekt_.NET_schronisko.Migrations
                     b.ToTable("Animal");
                 });
 
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.OrderProduct", b =>
+                {
+                    b.Property<int>("OrdersId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Ilosc")
+                        .HasColumnType("int");
+
+                    b.HasKey("OrdersId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("OrderProduct", (string)null);
+                });
+
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.Orders", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DataZamowienia")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeliveryAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Orders");
+                });
+
             modelBuilder.Entity("projekt_.NET_schronisko.Models.Product", b =>
                 {
                     b.Property<string>("Id")
@@ -323,6 +369,35 @@ namespace projekt_.NET_schronisko.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.OrderProduct", b =>
+                {
+                    b.HasOne("projekt_.NET_schronisko.Models.Orders", "Orders")
+                        .WithMany("ProduktyZamowienia")
+                        .HasForeignKey("OrdersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("projekt_.NET_schronisko.Models.Product", "Product")
+                        .WithMany("ProduktyZamowienia")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Orders");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.Orders", b =>
+                {
+                    b.Navigation("ProduktyZamowienia");
+                });
+
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.Product", b =>
+                {
+                    b.Navigation("ProduktyZamowienia");
                 });
 #pragma warning restore 612, 618
         }
