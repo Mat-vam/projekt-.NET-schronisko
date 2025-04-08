@@ -27,3 +27,12 @@ body {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+/* Jeœli chcesz, by liczba produktów by³a widoczna w kwadracie */
+.badge-warning {
+    background-color: #ffcc00; /* ¯ó³ty kolor */
+    color: white;
+    padding: 5px 10px;
+    border-radius: 50%;
+    font-size: 14px;
+}
+

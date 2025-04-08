@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/projekt_.NET_schronisko.styles.css" asp-append-version="true" />
+    <!-- Link do Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
 </head>
 <body>
     <header>
@@ -39,6 +41,25 @@
                         }
                         <partial name="_LoginPartial" />
                     </ul>
+                    <!-- Ikona koszyka -->
+                    <!-- Ikona koszyka -->
+                    <ul class="navbar-nav">
+                        @if (User.Identity.IsAuthenticated && User.IsInRole("Klient"))
+                        {
+                            <li class="nav-item">
+                                <a href="@Url.Action("Index", "Cart")" class="nav-link">
+                                    <i class="fa fa-shopping-cart"></i>
+                                    <span class="badge badge-warning">
+                                        @ViewData["CartItemCount"] ?? "0"
+                                    </span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+
+
+
                 </div>
             </div>
         </nav>

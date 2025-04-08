@@ -1,0 +1,42 @@
+﻿@model projekt_.NET_schronisko.Models.Cart
+@{
+    ViewData["Title"] = "Twój Koszyk";
+}
+
+<h2>Twój Koszyk</h2>
+
+@if (Model != null && Model.Items.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Produkt</th>
+                <th>Ilość</th>
+                <th>Cena</th>
+                <th>Całkowita cena</th>
+                <th>Akcja</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.Product.Name</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.Product.Price</td>
+                    <td>@(item.Quantity * item.Product.Price)</td>
+                    <td>
+                        <a href="@Url.Action("RemoveFromCart", "Cart", new { cartItemId = item.Id })">Usuń</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4>Łączna cena: @ViewBag.TotalPrice</h4>
+    <a href="@Url.Action("Checkout", "Cart")">Przejdź do kasy</a>
+}
+else
+{
+    <p>Twój koszyk jest pusty.</p>
+}

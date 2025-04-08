@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using projekt_.NET_schronisko.Models;
 using System.Net.NetworkInformation;
+using projekt_.NET_schronisko.Services;
 
 public class Program
 {
@@ -12,6 +13,8 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+        builder.Services.AddScoped<ICartService, CartService>(); // Rejestracja serwisu koszyka
+
 
         builder.Services.AddDbContext<ShelterContext>(options =>
         {
@@ -92,6 +95,34 @@ public class Program
                     }
                 }
                 
+            }
+        }
+        using (var scope = app.Services.CreateScope())  //tworzenie jednego konta klienta
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Users>>();
+            string email = "klient@schronisko.com";
+            string password = "Test1234!";
+
+            if (await userManager.FindByEmailAsync(email) == null)
+            {
+                var user = new Users();
+                user.UserName = email;
+                user.Email = email;
+                user.FullName = email;
+
+                var result = await userManager.CreateAsync(user, password);
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(user, "Klient");
+                }
+                else
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        Console.WriteLine($"Blad tworzenia klienta: {error.Description}");
+                    }
+                }
+
             }
         }
 
