@@ -82,16 +82,17 @@ namespace projekt_.NET_schronisko.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                _context.Add(product);  // Dodanie produktu do kontekstu
+                await _context.SaveChangesAsync();  // Zapis do bazy danych
+                return RedirectToAction(nameof(Index));  // Po zapisaniu przekierowanie do listy produktów
             }
             
-            var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
-            ViewBag.Categories = new SelectList(categories);
-            
+            // Jeśli model nie jest prawidłowy, powrót do widoku
             return View(product);
         }
+
+
+
 
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(string id)

@@ -184,6 +184,53 @@ namespace projekt_.NET_schronisko.Migrations
                     b.ToTable("Animal");
                 });
 
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.Cart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Carts");
+                });
+
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.CartItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CartId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ProductId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CartId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("CartItems");
+                });
+
             modelBuilder.Entity("projekt_.NET_schronisko.Models.OrderProduct", b =>
                 {
                     b.Property<int>("OrdersId")
@@ -371,6 +418,25 @@ namespace projekt_.NET_schronisko.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.CartItem", b =>
+                {
+                    b.HasOne("projekt_.NET_schronisko.Models.Cart", "Cart")
+                        .WithMany("Items")
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("projekt_.NET_schronisko.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cart");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("projekt_.NET_schronisko.Models.OrderProduct", b =>
                 {
                     b.HasOne("projekt_.NET_schronisko.Models.Orders", "Orders")
@@ -388,6 +454,11 @@ namespace projekt_.NET_schronisko.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.Cart", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("projekt_.NET_schronisko.Models.Orders", b =>
