@@ -86,9 +86,19 @@ namespace projekt_.NET_schronisko.Controllers
                 await _context.SaveChangesAsync();  // Zapis do bazy danych
                 return RedirectToAction(nameof(Index));  // Po zapisaniu przekierowanie do listy produktów
             }
-            
-            // Jeśli model nie jest prawidłowy, powrót do widoku
-            return View(product);
+            else
+            {
+                foreach (var state in ModelState)
+                {
+                    foreach (var error in state.Value.Errors)
+                    {
+                        Console.WriteLine($"Błąd w polu {state.Key}: {error.ErrorMessage}");
+                    }
+                }
+            }
+
+                // Jeśli model nie jest prawidłowy, powrót do widoku
+                return View(product);
         }
 
 
