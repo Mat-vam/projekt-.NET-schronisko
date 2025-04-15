@@ -1,54 +1,55 @@
 ﻿@model IEnumerable<projekt_.NET_schronisko.Models.Animal>
 
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Zwierzaki";
+
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
+    bool isWorker = roles.Contains("Pracownik");
 }
 
-<h1>Index</h1>
+<h1>Zwierzaki</h1>
+
+@if (isWorker)
+{
+    <a asp-action="Create" class="btn btn-success mb-3">Dodaj nowego zwierzaka</a>
+}
 
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Species)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Bio)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>@Html.DisplayNameFor(model => model.Species)</th>
+            <th>@Html.DisplayNameFor(model => model.Bio)</th>
+            <th>@Html.DisplayNameFor(model => model.Status)</th>
+            <th>Akcje</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Species)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Bio)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                <td>@Html.DisplayFor(modelItem => item.Species)</td>
+                <td>@Html.DisplayFor(modelItem => item.Bio)</td>
+                <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.ID" class="btn btn-info text-white">Szczegóły</a>
+                    @if (isWorker)
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.ID" class="btn btn-warning">Edytuj</a>
+                        <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-danger">Usuń</a>
+                    }
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
-<form method="get">
+
+<form method="get" class="mt-4">
     <label>Gatunek:</label>
     <select name="species" class="form-control">
         <option value="">Wszystkie</option>
