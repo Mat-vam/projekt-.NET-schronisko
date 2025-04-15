@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using projekt_.NET_schronisko.Models;
 using projekt_.NET_schronisko.ViewModels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -10,20 +9,24 @@ namespace projekt_.NET_schronisko.Controllers
     {
         private readonly SignInManager<Users> signInManager;
         private readonly UserManager<Users> userManager;
+        private readonly RoleManager<IdentityRole> roleManager;
 
-        public AccountController(SignInManager<Users> signInManager, UserManager<Users> userManager)
+        public AccountController(SignInManager<Users> signInManager, UserManager<Users> userManager, RoleManager<IdentityRole> roleManager)
         {
             this.signInManager = signInManager;
-            this.userManager = userManager; 
+            this.userManager = userManager;
+            this.roleManager = roleManager;  // Dodajemy RoleManager
         }
+
         public IActionResult Login()
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
@@ -37,16 +40,17 @@ namespace projekt_.NET_schronisko.Controllers
                 }
             }
             return View(model);
-            
         }
+
         public IActionResult Register()
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 Users users = new Users
                 {
@@ -56,51 +60,64 @@ namespace projekt_.NET_schronisko.Controllers
                 };
 
                 var result = await userManager.CreateAsync(users, model.Password);
-                if(result.Succeeded)
+                if (result.Succeeded)
                 {
+                    // Przypisanie roli "Klient"
+                    if (!await roleManager.RoleExistsAsync("Klient"))
+                    {
+                        // Jeśli rola "Klient" nie istnieje, tworzymy ją
+                        await roleManager.CreateAsync(new IdentityRole("Klient"));
+                    }
+
+                    await userManager.AddToRoleAsync(users, "Klient"); // Przypisanie roli "Klient" do nowego użytkownika
+
                     return RedirectToAction("Login", "Account");
                 }
                 else
                 {
-                    foreach(var error in result.Errors)
+                    foreach (var error in result.Errors)
                     {
                         ModelState.AddModelError("", error.Description);
-                    }    
+                    }
                     return View(model);
                 }
             }
             return View(model);
         }
+
         public IActionResult VerifyEmail()
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 var user = await userManager.FindByNameAsync(model.Email);
                 if (user == null)
                 {
-                    ModelState.AddModelError("", "Podano nie poprawny Email");
+                    ModelState.AddModelError("", "Podano niepoprawny Email");
                     return View(model);
                 }
                 else
                 {
-                    return RedirectToAction("ChangePassword", "Account", new {username = user.UserName});
+                    return RedirectToAction("ChangePassword", "Account", new { username = user.UserName });
                 }
             }
             return View(model);
         }
+
         public IActionResult ChangePassword(string username)
         {
             if (string.IsNullOrEmpty(username))
             {
                 return RedirectToAction("VerifyEmail", "Account");
             }
-            return View(new ChangePasswordViewModel { Email = username});
+            return View(new ChangePasswordViewModel { Email = username });
         }
+
         [HttpPost]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
@@ -136,6 +153,7 @@ namespace projekt_.NET_schronisko.Controllers
                 return View(model);
             }
         }
+
         public async Task<IActionResult> Logout()
         {
             await signInManager.SignOutAsync();

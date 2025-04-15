@@ -131,7 +131,7 @@ namespace projekt_.NET_schronisko.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,Name,Price,Category")] Product product)
+        public async Task<IActionResult> Edit(string id, [Bind("Name,Price,Category")] Product product)
         {
             if (id != product.Id)
             {

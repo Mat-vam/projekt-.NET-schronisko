@@ -280,6 +280,7 @@ namespace projekt_.NET_schronisko.Migrations
             modelBuilder.Entity("projekt_.NET_schronisko.Models.Product", b =>
                 {
                     b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Category")
