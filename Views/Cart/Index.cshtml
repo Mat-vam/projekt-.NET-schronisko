@@ -1,4 +1,6 @@
-﻿@model projekt_.NET_schronisko.Models.Cart
+﻿@Html.AntiForgeryToken()
+
+@model projekt_.NET_schronisko.Models.Cart
 
 @{
     ViewData["Title"] = "Twój Koszyk";
@@ -43,16 +45,58 @@
     </table>
 
     <h4>Łączna cena: <span id="totalPrice">@ViewBag.TotalPrice.ToString("0.00")</span> zł</h4>
-    <a href="@Url.Action("Checkout", "Cart")" class="btn btn-success">Przejdź do kasy</a>
+
+    <!-- Przycisk do złożenia zamówienia -->
+    <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#orderModal">
+        Złóż zamówienie
+    </button>
 }
 else
 {
     <p id="emptyCartMessage">Twój koszyk jest pusty.</p>
 }
 
+<!-- Modal zamówienia -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="orderForm" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderModalLabel">Dane do zamówienia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-2">
+                    <input class="form-control" name="FirstName" placeholder="Imię" required />
+                </div>
+                <div class="mb-2">
+                    <input class="form-control" name="LastName" placeholder="Nazwisko" required />
+                </div>
+                <div class="mb-2">
+                    <input class="form-control" name="PostalCode" placeholder="Kod pocztowy" required />
+                </div>
+                <div class="mb-2">
+                    <input class="form-control" name="City" placeholder="Miasto" required />
+                </div>
+                <div class="mb-2">
+                    <input class="form-control" name="Address" placeholder="Adres" required />
+                </div>
+                <div class="mb-2">
+                    <input class="form-control" name="Phone" placeholder="Telefon" required />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success">Zatwierdź</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Skrypty JavaScript -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Usuwanie produktu z koszyka
+        // Usuwanie produktu
         document.querySelectorAll(".remove-item-btn").forEach(button => {
             button.addEventListener("click", function () {
                 const cartItemId = this.dataset.cartItemId;
@@ -62,37 +106,30 @@ else
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
                     body: `cartItemId=${cartItemId}`
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        alert(data.message || "Coś poszło nie tak.");
-                        return;
-                    }
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert(data.message || "Coś poszło nie tak.");
+                            return;
+                        }
 
-                    const row = document.getElementById(`cartItem_${cartItemId}`);
-                    if (row) row.remove();
+                        const row = document.getElementById(`cartItem_${cartItemId}`);
+                        if (row) row.remove();
 
-                    const cartCounter = document.getElementById("cartItemCount");
-                    if (cartCounter) cartCounter.innerText = data.cartItemCount;
+                        document.getElementById("cartItemCount").innerText = data.cartItemCount;
+                        document.getElementById("totalPrice").innerText = data.totalPrice;
 
-                    const totalPriceEl = document.getElementById("totalPrice");
-                    if (totalPriceEl) totalPriceEl.innerText = data.totalPrice;
-
-                    if (data.cartItemCount === 0) {
-                        document.getElementById("cartTable").remove();
-                        document.getElementById("totalPrice").parentElement.remove();
-                        const h2 = document.querySelector("h2");
-                        h2.insertAdjacentHTML("afterend", "<p id='emptyCartMessage'>Twój koszyk jest pusty.</p>");
-                    }
-                })
-                .catch(error => {
-                    console.error("Błąd:", error);
-                    alert("Coś poszło nie tak.");
-                });
+                        if (data.cartItemCount === 0) {
+                            document.getElementById("cartTable").remove();
+                            document.getElementById("totalPrice")?.parentElement?.remove();
+                            const h2 = document.querySelector("h2");
+                            h2.insertAdjacentHTML("afterend", "<p id='emptyCartMessage'>Twój koszyk jest pusty.</p>");
+                        }
+                    });
             });
         });
 
-        // Zmiana ilości produktów
+        // Zmiana ilości
         document.querySelectorAll(".quantity").forEach(input => {
             input.addEventListener("change", function () {
                 const cartItemId = this.dataset.cartItemId;
@@ -103,18 +140,47 @@ else
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
                     body: `cartItemId=${cartItemId}&quantity=${quantity}`
                 })
-                .then(response => response.json())
-                .then(data => {
-                    const totalPriceCell = this.closest("tr").querySelector(".total-price");
-                    totalPriceCell.innerText = data.itemTotalPrice + " zł";
-
-                    document.getElementById("totalPrice").innerText = data.totalPrice;
-                })
-                .catch(error => {
-                    console.error("Błąd:", error);
-                    alert("Coś poszło nie tak.");
-                });
+                    .then(() => {
+                        location.reload(); // reload dla prostoty po aktualizacji
+                    });
             });
+        });
+
+        // Wysyłka formularza zamówienia
+        document.getElementById("orderForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            fetch("/Cart/PlaceOrder", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
+                        modal.hide();
+                        document.querySelector("h2").innerText = "Zamówienie zostało złożone!";
+                        document.getElementById("cartTable")?.remove();
+                        document.getElementById("totalPrice")?.parentElement?.remove();
+                        document.getElementById("orderForm").remove();
+
+                        const button = document.createElement("a");
+                        button.href = "/";
+                        button.className = "btn btn-primary mt-3";
+                        button.innerText = "Powrót na stronę główną";
+                        document.querySelector("h2").after(button);
+                    }
+                })
+                .catch(err => {
+                    console.error("Błąd:", err.message);
+                    alert("Wystąpił błąd: " + err.message);
+                });
         });
     });
 </script>

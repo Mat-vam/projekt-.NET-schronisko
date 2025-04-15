@@ -2,7 +2,6 @@ using projekt_.NET_schronisko.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using projekt_.NET_schronisko.Models;
-using System.Net.NetworkInformation;
 using projekt_.NET_schronisko.Services;
 
 public class Program
@@ -15,11 +14,11 @@ public class Program
         builder.Services.AddControllersWithViews();
         builder.Services.AddScoped<ICartService, CartService>(); // Rejestracja serwisu koszyka
 
-
         builder.Services.AddDbContext<ShelterContext>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
         });
+
         builder.Services.AddIdentity<Users, IdentityRole>(options =>
         {
             options.Password.RequireNonAlphanumeric = false;
@@ -41,7 +40,6 @@ public class Program
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
 
@@ -56,6 +54,7 @@ public class Program
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
+        // Tworzenie ról (jeœli nie istniej¹)
         using (var scope = app.Services.CreateScope())
         {
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -69,19 +68,23 @@ public class Program
                 }
             }
         }
-        using (var scope = app.Services.CreateScope())  //tworzenie jednego konta pracownika
+
+        // Tworzenie konta Pracownika
+        using (var scope = app.Services.CreateScope())
         {
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Users>>();
             string email = "pracownik@schronisko.com";
             string password = "Test1234!";
 
-            if(await userManager.FindByEmailAsync(email) == null)
+            if (await userManager.FindByEmailAsync(email) == null)
             {
-                var user = new Users();
-                user.UserName = email;
-                user.Email = email;
-                user.FullName = email;
-                
+                var user = new Users
+                {
+                    UserName = email,
+                    Email = email,
+                    FullName = email
+                };
+
                 var result = await userManager.CreateAsync(user, password);
                 if (result.Succeeded)
                 {
@@ -89,15 +92,16 @@ public class Program
                 }
                 else
                 {
-                    foreach(var error in result.Errors)
+                    foreach (var error in result.Errors)
                     {
                         Console.WriteLine($"Blad tworzenia pracownika: {error.Description}");
                     }
                 }
-                
             }
         }
-        using (var scope = app.Services.CreateScope())  //tworzenie jednego konta klienta
+
+        // Tworzenie konta Klienta
+        using (var scope = app.Services.CreateScope())
         {
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Users>>();
             string email = "klient@schronisko.com";
@@ -105,15 +109,17 @@ public class Program
 
             if (await userManager.FindByEmailAsync(email) == null)
             {
-                var user = new Users();
-                user.UserName = email;
-                user.Email = email;
-                user.FullName = email;
+                var user = new Users
+                {
+                    UserName = email,
+                    Email = email,
+                    FullName = email
+                };
 
                 var result = await userManager.CreateAsync(user, password);
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(user, "Klient");
+                    await userManager.AddToRoleAsync(user, "Klient"); // Automatyczne przypisanie roli "Klient"
                 }
                 else
                 {
@@ -122,7 +128,6 @@ public class Program
                         Console.WriteLine($"Blad tworzenia klienta: {error.Description}");
                     }
                 }
-
             }
         }
 

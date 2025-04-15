@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using projekt_.NET_schronisko.ViewModels;
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -146,8 +147,6 @@ namespace projekt_.NET_schronisko.Controllers
             });
         }
 
-
-
         // Zmiana ilości produktu w koszyku
         [HttpPost]
         public async Task<IActionResult> UpdateCartItemQuantity(int cartItemId, int quantity)
@@ -178,5 +177,40 @@ namespace projekt_.NET_schronisko.Controllers
 
             return cart?.Items.Sum(item => item.Quantity) ?? 0;
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PlaceOrder([FromBody] OrderFormViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { success = false, message = "Błędne dane." });
+
+            var user = await _userManager.GetUserAsync(User);
+            var cart = await _context.Carts
+                .Include(c => c.Items)
+                .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            if (cart == null || !cart.Items.Any())
+                return BadRequest(new { success = false, message = "Koszyk jest pusty." });
+
+            var order = new Orders
+            {
+                CustomerName = $"{model.FirstName} {model.LastName}",
+                DeliveryAddress = $"{model.PostalCode}, {model.City}, {model.Address}",
+                ProduktyZamowienia = cart.Items.Select(i => new OrderProduct
+                {
+                    ProductId = i.ProductId,
+                    Ilosc = i.Quantity
+                }).ToList()
+            };
+
+            _context.Orders.Add(order);
+            _context.CartItems.RemoveRange(cart.Items);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
     }
 }

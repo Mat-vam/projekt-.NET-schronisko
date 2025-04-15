@@ -1,4 +1,6 @@
-﻿namespace projekt_.NET_schronisko.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace projekt_.NET_schronisko.Models
 {
     public class Animal
     {
