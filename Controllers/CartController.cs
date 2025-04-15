@@ -6,6 +6,8 @@ using projekt_.NET_schronisko.Data;
 using Microsoft.AspNetCore.Identity;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -21,7 +23,14 @@ namespace projekt_.NET_schronisko.Controllers
             _userManager = userManager;
         }
 
-        // Akcja do wyświetlania zawartości koszyka
+        // Pomocnicza klasa do JSON
+        public class CartAddRequest
+        {
+            public string ProductId { get; set; }
+            public int Quantity { get; set; }
+        }
+
+        // Wyświetlanie zawartości koszyka
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -34,95 +43,118 @@ namespace projekt_.NET_schronisko.Controllers
             {
                 cart = new Cart
                 {
-                    UserId = user.Id
+                    UserId = user.Id,
+                    Items = new List<CartItem>()
                 };
                 _context.Carts.Add(cart);
                 await _context.SaveChangesAsync();
             }
 
-            // Aktualizujemy ViewData o liczbę produktów w koszyku
+            // Ustawienie łącznej ceny w ViewBag
+            ViewBag.TotalPrice = cart.Items.Sum(i => i.Quantity * i.Product.Price);
+            // Liczba produktów w koszyku w ViewData
             ViewData["CartItemCount"] = await GetCartItemCount(user.Id);
 
-            return View(cart);
+            return View(cart); // Przekazanie całego koszyka do widoku
         }
 
-        // Akcja do dodawania produktów do koszyka
+        // Dodawanie produktu do koszyka przez fetch
         [HttpPost]
-        public async Task<IActionResult> AddToCart(string productId, int quantity)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToCart([FromBody] CartAddRequest request)
         {
+            if (request == null || string.IsNullOrEmpty(request.ProductId) || request.Quantity <= 0)
+                return BadRequest("Nieprawidłowe dane.");
+
             var user = await _userManager.GetUserAsync(User);
             var cart = await _context.Carts
                 .Include(c => c.Items)
+                .ThenInclude(i => i.Product)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             if (cart == null)
             {
                 cart = new Cart
                 {
-                    UserId = user.Id
+                    UserId = user.Id,
+                    Items = new List<CartItem>()
                 };
                 _context.Carts.Add(cart);
                 await _context.SaveChangesAsync();
             }
 
-            var product = await _context.Product.FindAsync(productId);
+            var product = await _context.Product.FindAsync(request.ProductId);
+            if (product == null)
+                return NotFound("Nie znaleziono produktu.");
 
-            if (product != null && quantity > 0)
+            var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == request.ProductId);
+
+            if (existingItem != null)
             {
-                var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == productId);
-
-                if (existingItem != null)
+                existingItem.Quantity += request.Quantity;
+                existingItem.Price = existingItem.Quantity * product.Price;
+            }
+            else
+            {
+                cart.Items.Add(new CartItem
                 {
-                    // Jeśli produkt już istnieje w koszyku, zwiększamy ilość
-                    existingItem.Quantity += quantity;
-                    existingItem.Price = product.Price * existingItem.Quantity;
-                }
-                else
-                {
-                    // Jeśli produkt nie istnieje, dodajemy go do koszyka
-                    cart.Items.Add(new CartItem
-                    {
-                        ProductId = productId,
-                        Product = product,
-                        Quantity = quantity,
-                        Price = product.Price * quantity
-                    });
-                }
-
-                await _context.SaveChangesAsync();
+                    ProductId = request.ProductId,
+                    Product = product,
+                    Quantity = request.Quantity,
+                    Price = product.Price * request.Quantity
+                });
             }
 
-            // Aktualizujemy ViewData o liczbę produktów w koszyku
-            ViewData["CartItemCount"] = await GetCartItemCount(user.Id);
+            await _context.SaveChangesAsync();
 
-            // Zwracamy liczbę produktów w koszyku w odpowiedzi JSON
-            return Json(new { cartItemCount = ViewData["CartItemCount"] });
+            var cartItemCount = await GetCartItemCount(user.Id);
+            return Json(new { cartItemCount });
         }
 
-        // Akcja do usuwania produktu z koszyka
+        // Usuwanie produktu z koszyka
         [HttpPost]
         public async Task<IActionResult> RemoveFromCart(int cartItemId)
         {
-            var cartItem = await _context.CartItems.FindAsync(cartItemId);
+            var cartItem = await _context.CartItems
+                .Include(ci => ci.Product)
+                .Include(ci => ci.Cart)
+                .FirstOrDefaultAsync(ci => ci.Id == cartItemId);
 
-            if (cartItem != null)
+            if (cartItem == null)
             {
-                _context.CartItems.Remove(cartItem);
-                await _context.SaveChangesAsync();
+                return Json(new { success = false, message = "Nie znaleziono elementu koszyka." });
             }
 
-            // Aktualizujemy ViewData o liczbę produktów w koszyku
-            var user = await _userManager.GetUserAsync(User);
-            ViewData["CartItemCount"] = await GetCartItemCount(user.Id);
+            var userId = cartItem.Cart.UserId;
 
-            return RedirectToAction("Index");
+            _context.CartItems.Remove(cartItem);
+            await _context.SaveChangesAsync();
+
+            var cart = await _context.Carts
+                .Include(c => c.Items)
+                .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            var totalPrice = cart?.Items.Sum(i => i.Quantity * i.Product.Price) ?? 0;
+            var cartItemCount = cart?.Items.Sum(i => i.Quantity) ?? 0;
+
+            return Json(new
+            {
+                success = true,
+                totalPrice = totalPrice.ToString("0.00"),
+                cartItemCount
+            });
         }
 
-        // Akcja do zmiany ilości produktu w koszyku
+
+
+        // Zmiana ilości produktu w koszyku
         [HttpPost]
         public async Task<IActionResult> UpdateCartItemQuantity(int cartItemId, int quantity)
         {
-            var cartItem = await _context.CartItems.FindAsync(cartItemId);
+            var cartItem = await _context.CartItems
+                .Include(ci => ci.Product)
+                .FirstOrDefaultAsync(ci => ci.Id == cartItemId);
 
             if (cartItem != null && quantity > 0)
             {
@@ -131,14 +163,13 @@ namespace projekt_.NET_schronisko.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Aktualizujemy ViewData o liczbę produktów w koszyku
             var user = await _userManager.GetUserAsync(User);
             ViewData["CartItemCount"] = await GetCartItemCount(user.Id);
 
             return RedirectToAction("Index");
         }
 
-        // Pomocnicza metoda do uzyskania liczby przedmiotów w koszyku
+        // Liczba produktów w koszyku
         public async Task<int> GetCartItemCount(string userId)
         {
             var cart = await _context.Carts

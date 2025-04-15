@@ -14,6 +14,9 @@
 
 <h1>Produkty</h1>
 
+<!-- Ukryty formularz z tokenem CSRF -->
+<form id="csrfTokenForm">@Html.AntiForgeryToken()</form>
+
 @if (isEmployee)
 {
     <a asp-action="Create" class="btn btn-success mb-3">Dodaj nowy produkt</a>
@@ -56,7 +59,6 @@
                     </td>
                 }
 
-                <!-- Widoczny dla wszystkich -->
                 <td>
                     <div class="d-flex flex-wrap gap-2">
                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Szczegóły</a>
@@ -68,9 +70,57 @@
                         }
                     </div>
                 </td>
-                
-
             </tr>
         }
     </tbody>
 </table>
+
+<!-- Koszyk z licznikiem -->
+@if (isClient)
+{
+    <div class="mt-4">
+        <strong>Koszyk:</strong> <span id="cartItemCount">@ViewData["CartItemCount"]</span> produktów
+    </div>
+}
+
+<!-- JavaScript -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".add-to-cart-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const productId = this.dataset.productId;
+                const quantityInput = document.querySelector(`input[data-product-id="${productId}"]`);
+                const quantity = parseInt(quantityInput?.value || "1");
+
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput?.value;
+
+                fetch("/Cart/AddToCart", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    },
+                    body: JSON.stringify({
+                        productId: productId,
+                        quantity: quantity
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Błąd dodawania produktu.");
+                    return response.json();
+                })
+                .then(data => {
+                    // Zaktualizuj liczbę produktów w koszyku bez powiadomienia
+                    const cartCounter = document.getElementById("cartItemCount");
+                    if (cartCounter) {
+                        cartCounter.innerText = `${data.cartItemCount} produktów`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Błąd:", error);
+                });
+            });
+        });
+    });
+</script>

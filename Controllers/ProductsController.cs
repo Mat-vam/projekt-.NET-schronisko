@@ -104,8 +104,9 @@ namespace projekt_.NET_schronisko.Controllers
 
 
 
-        // GET: Products/Edit/5
+        [Authorize(Roles = "Pracownik")]
         public async Task<IActionResult> Edit(string id)
+
         {
             if (id == null)
             {
