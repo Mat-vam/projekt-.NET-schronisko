@@ -1,101 +1,76 @@
 ﻿@model IEnumerable<projekt_.NET_schronisko.Models.Product>
 
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
 @{
     ViewData["Title"] = "Index";
+
+    var user = await UserManager.GetUserAsync(User);
+    var roles = await UserManager.GetRolesAsync(user);
+    bool isClient = roles.Contains("Klient");
+    bool isEmployee = roles.Contains("Pracownik");
 }
 
 <h1>Produkty</h1>
 
+@if (isEmployee)
+{
+    <a asp-action="Create" class="btn btn-success mb-3">Dodaj nowy produkt</a>
+}
+
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th>
-                Ilość
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>@Html.DisplayNameFor(model => model.Price)</th>
+            <th>@Html.DisplayNameFor(model => model.Category)</th>
+
+            @if (isClient)
+            {
+                <th>Ilość</th>
+                <th></th>
+            }
+
+            @if (isEmployee)
+            {
+                <th>Akcje</th>
+            }
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
+                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                <td>@Html.DisplayFor(modelItem => item.Price)</td>
+                <td>@Html.DisplayFor(modelItem => item.Category)</td>
+
+                @if (isClient)
+                {
+                    <td>
+                        <input type="number" name="quantity_@item.Id" class="form-control quantity" value="1" min="1" data-product-id="@item.Id" />
+                    </td>
+                    <td>
+                        <button class="btn btn-primary add-to-cart-btn" data-product-id="@item.Id">Dodaj do koszyka</button>
+                    </td>
+                }
+
+                <!-- Widoczny dla wszystkich -->
                 <td>
-                    @Html.DisplayFor(modelItem => item.Name)
+                    <div class="d-flex flex-wrap gap-2">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Szczegóły</a>
+
+                        @if (isEmployee)
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edytuj</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Usuń</a>
+                        }
+                    </div>
                 </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Price)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Category)
-                </td>
-                <td>
-                    <!-- Pole do wpisania ilości -->
-                    <input type="number" name="quantity_@item.Id" class="form-control quantity" value="1" min="1" data-product-id="@item.Id" />
-                </td>
-                <td>
-                    <!-- Przycisk do dodania produktu do koszyka -->
-                    <button class="btn btn-primary add-to-cart-btn" data-product-id="@item.Id">Dodaj do koszyka</button>
-                </td>
+                
+
             </tr>
         }
     </tbody>
 </table>
-
-<!-- Formularz filtrujący -->
-<form method="get">
-    <label>Minimalna cena:</label>
-    <input type="number" name="minPrice" class="form-control" step="0.01" />
-
-    <label>Maksymalna cena:</label>
-    <input type="number" name="maxPrice" class="form-control" step="0.01" />
-
-    <label>Kategoria:</label>
-    <select name="category" class="form-control">
-        <option value="">Wszystkie</option>
-        <option value="Zabawka">Zabawka</option>
-        <option value="Karma">Karma</option>
-        <option value="Akcesoria">Akcesoria</option>
-    </select>
-
-    <button type="submit" class="btn btn-primary mt-2">Filtruj</button>
-</form>
-
-<!-- Skrypt do obsługi AJAX dla koszyka -->
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script>
-    // Funkcja do dodawania produktu do koszyka
-    function addToCart(productId, quantity) {
-        $.ajax({
-            url: '@Url.Action("AddToCart", "Cart")', // Adres URL akcji AddToCart w CartController
-            type: 'POST',
-            data: {
-                productId: productId,
-                quantity: quantity
-            },
-            success: function (data) {
-                // Zaktualizuj licznik produktów w koszyku
-                $('#cartItemCount').text(data.cartItemCount);
-                alert("Produkt został dodany do koszyka!");
-            },
-            error: function () {
-                alert("Wystąpił błąd podczas dodawania do koszyka.");
-            }
-        });
-    }
-
-    // Obsługa kliknięcia przycisku "Dodaj do koszyka"
-    $(document).on('click', '.add-to-cart-btn', function () {
-        var productId = $(this).data('product-id');
-        var quantity = $(this).closest('tr').find('.quantity').val(); // Pobierz ilość produktu
-        addToCart(productId, quantity);
-    });
-</script>
