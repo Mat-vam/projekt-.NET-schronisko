@@ -80,8 +80,9 @@ namespace projekt_.NET_schronisko.Controllers
             return View(animal);
         }
 
-        // GET: Animals/Edit/5
+        [Authorize(Roles = "Pracownik")]
         public async Task<IActionResult> Edit(int? id)
+
         {
             if (id == null)
             {

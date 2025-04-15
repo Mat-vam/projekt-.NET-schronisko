@@ -1,4 +1,5 @@
 ﻿@model projekt_.NET_schronisko.Models.Cart
+
 @{
     ViewData["Title"] = "Twój Koszyk";
 }
@@ -7,7 +8,7 @@
 
 @if (Model != null && Model.Items.Any())
 {
-    <table class="table">
+    <table class="table" id="cartTable">
         <thead>
             <tr>
                 <th>Produkt</th>
@@ -17,26 +18,103 @@
                 <th>Akcja</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="cartItemsBody">
             @foreach (var item in Model.Items)
             {
-                <tr>
+                <tr id="cartItem_@item.Id">
                     <td>@item.Product.Name</td>
-                    <td>@item.Quantity</td>
-                    <td>@item.Product.Price</td>
-                    <td>@(item.Quantity * item.Product.Price)</td>
                     <td>
-                        <a href="@Url.Action("RemoveFromCart", "Cart", new { cartItemId = item.Id })">Usuń</a>
+                        <input type="number" class="form-control quantity"
+                               data-cart-item-id="@item.Id"
+                               value="@item.Quantity"
+                               min="1" />
+                    </td>
+                    <td>@item.Product.Price.ToString("0.00") zł</td>
+                    <td class="total-price">@((item.Quantity * item.Product.Price).ToString("0.00")) zł</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm remove-item-btn"
+                                data-cart-item-id="@item.Id">
+                            Usuń
+                        </button>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
 
-    <h4>Łączna cena: @ViewBag.TotalPrice</h4>
-    <a href="@Url.Action("Checkout", "Cart")">Przejdź do kasy</a>
+    <h4>Łączna cena: <span id="totalPrice">@ViewBag.TotalPrice.ToString("0.00")</span> zł</h4>
+    <a href="@Url.Action("Checkout", "Cart")" class="btn btn-success">Przejdź do kasy</a>
 }
 else
 {
-    <p>Twój koszyk jest pusty.</p>
+    <p id="emptyCartMessage">Twój koszyk jest pusty.</p>
 }
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Usuwanie produktu z koszyka
+        document.querySelectorAll(".remove-item-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const cartItemId = this.dataset.cartItemId;
+
+                fetch("/Cart/RemoveFromCart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `cartItemId=${cartItemId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert(data.message || "Coś poszło nie tak.");
+                        return;
+                    }
+
+                    const row = document.getElementById(`cartItem_${cartItemId}`);
+                    if (row) row.remove();
+
+                    const cartCounter = document.getElementById("cartItemCount");
+                    if (cartCounter) cartCounter.innerText = data.cartItemCount;
+
+                    const totalPriceEl = document.getElementById("totalPrice");
+                    if (totalPriceEl) totalPriceEl.innerText = data.totalPrice;
+
+                    if (data.cartItemCount === 0) {
+                        document.getElementById("cartTable").remove();
+                        document.getElementById("totalPrice").parentElement.remove();
+                        const h2 = document.querySelector("h2");
+                        h2.insertAdjacentHTML("afterend", "<p id='emptyCartMessage'>Twój koszyk jest pusty.</p>");
+                    }
+                })
+                .catch(error => {
+                    console.error("Błąd:", error);
+                    alert("Coś poszło nie tak.");
+                });
+            });
+        });
+
+        // Zmiana ilości produktów
+        document.querySelectorAll(".quantity").forEach(input => {
+            input.addEventListener("change", function () {
+                const cartItemId = this.dataset.cartItemId;
+                const quantity = parseInt(this.value) || 1;
+
+                fetch("/Cart/UpdateCartItemQuantity", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `cartItemId=${cartItemId}&quantity=${quantity}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const totalPriceCell = this.closest("tr").querySelector(".total-price");
+                    totalPriceCell.innerText = data.itemTotalPrice + " zł";
+
+                    document.getElementById("totalPrice").innerText = data.totalPrice;
+                })
+                .catch(error => {
+                    console.error("Błąd:", error);
+                    alert("Coś poszło nie tak.");
+                });
+            });
+        });
+    });
+</script>
