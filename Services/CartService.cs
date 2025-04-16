@@ -24,7 +24,7 @@ namespace projekt_.NET_schronisko.Services
         }
 
         // Dodaje przedmiot do koszyka
-        public async Task AddToCart(string userId, string productId, int quantity)
+        public async Task AddToCart(string userId, int productId, int quantity)
         {
             var cart = await _context.Carts
                 .FirstOrDefaultAsync(c => c.UserId == userId);

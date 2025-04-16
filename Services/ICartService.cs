@@ -3,6 +3,6 @@
     public interface ICartService
     {
         Task<int> GetCartItemCount(string userId); // Metoda do pobierania liczby przedmiotów w koszyku
-        Task AddToCart(string userId, string productId, int quantity); // Metoda do dodania przedmiotu do koszyka
+        Task AddToCart(string userId, int productId, int quantity); // Metoda do dodania przedmiotu do koszyka
     }
 }

@@ -44,7 +44,7 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
         // GET: Products/Details/5
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(int id)
         {
             if (id == null)
             {
@@ -52,7 +52,7 @@ namespace projekt_.NET_schronisko.Controllers
             }
 
             var product = await _context.Product
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.ID == id);
             if (product == null)
             {
                 return NotFound();
@@ -78,7 +78,7 @@ namespace projekt_.NET_schronisko.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Pracownik")]
-        public async Task<IActionResult> Create([Bind("Id,Name,Price,Category")] Product product)
+        public async Task<IActionResult> Create([Bind("ID,Name,Price,Category")] Product product)
         {
             if (ModelState.IsValid)
             {
@@ -105,7 +105,7 @@ namespace projekt_.NET_schronisko.Controllers
 
 
         [Authorize(Roles = "Pracownik")]
-        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(int id)
 
         {
             if (id == null)
@@ -131,9 +131,9 @@ namespace projekt_.NET_schronisko.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Name,Price,Category")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Price,Category")] Product product)
         {
-            if (id != product.Id)
+            if (id != product.ID)
             {
                 return NotFound();
             }
@@ -147,7 +147,7 @@ namespace projekt_.NET_schronisko.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductExists(product.Id))
+                    if (!ProductExists(product.ID))
                     {
                         return NotFound();
                     }
@@ -167,7 +167,7 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
         // GET: Products/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(int id)
         {
             if (id == null)
             {
@@ -175,7 +175,7 @@ namespace projekt_.NET_schronisko.Controllers
             }
 
             var product = await _context.Product
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.ID == id);
             if (product == null)
             {
                 return NotFound();
@@ -187,7 +187,7 @@ namespace projekt_.NET_schronisko.Controllers
         // POST: Products/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var product = await _context.Product.FindAsync(id);
             if (product != null)
@@ -199,9 +199,9 @@ namespace projekt_.NET_schronisko.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductExists(string id)
+        private bool ProductExists(int id)
         {
-            return _context.Product.Any(e => e.Id == id);
+            return _context.Product.Any(e => e.ID == id);
         }
     }
 }

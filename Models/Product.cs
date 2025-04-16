@@ -5,7 +5,7 @@ namespace projekt_.NET_schronisko.Models
 {
     public class Product
     {
-        public string Id { get; set; }
+        public int ID { get; set; }
         public string Name { get; set; }
         public decimal Price { get; set; }
         [Required]

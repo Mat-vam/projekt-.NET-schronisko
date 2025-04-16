@@ -52,21 +52,21 @@
                 @if (isClient)
                 {
                     <td>
-                        <input type="number" name="quantity_@item.Id" class="form-control quantity" value="1" min="1" data-product-id="@item.Id" />
+                        <input type="number" name="quantity_@item.ID" class="form-control quantity" value="1" min="1" data-product-id="@item.ID" />
                     </td>
                     <td>
-                        <button class="btn btn-primary add-to-cart-btn" data-product-id="@item.Id">Dodaj do koszyka</button>
+                        <button class="btn btn-primary add-to-cart-btn" data-product-id="@item.ID">Dodaj do koszyka</button>
                     </td>
                 }
 
                 <td>
                     <div class="d-flex flex-wrap gap-2">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Szczegóły</a>
+                        <a asp-action="Details" asp-route-id="@item.ID" class="btn btn-info btn-sm">Szczegóły</a>
 
                         @if (isEmployee)
                         {
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edytuj</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Usuń</a>
+                            <a asp-action="Edit" asp-route-id="@item.ID" class="btn btn-warning btn-sm">Edytuj</a>
+                            <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-danger btn-sm">Usuń</a>
                         }
                     </div>
                 </td>

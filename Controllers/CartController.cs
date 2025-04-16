@@ -27,7 +27,7 @@ namespace projekt_.NET_schronisko.Controllers
         // Pomocnicza klasa do JSON
         public class CartAddRequest
         {
-            public string ProductId { get; set; }
+            public int ProductId { get; set; }
             public int Quantity { get; set; }
         }
 
@@ -64,10 +64,11 @@ namespace projekt_.NET_schronisko.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCart([FromBody] CartAddRequest request)
         {
-            if (request == null || string.IsNullOrEmpty(request.ProductId) || request.Quantity <= 0)
+            if (request == null || request.ProductId <= 0 || request.Quantity <= 0)
                 return BadRequest("Nieprawidłowe dane.");
 
             var user = await _userManager.GetUserAsync(User);
+
             var cart = await _context.Carts
                 .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
@@ -88,7 +89,7 @@ namespace projekt_.NET_schronisko.Controllers
             if (product == null)
                 return NotFound("Nie znaleziono produktu.");
 
-            var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == request.ProductId);
+            var existingItem = cart.Items.FirstOrDefault(i => request.ProductId == request.ProductId);
 
             if (existingItem != null)
             {
@@ -111,6 +112,7 @@ namespace projekt_.NET_schronisko.Controllers
             var cartItemCount = await GetCartItemCount(user.Id);
             return Json(new { cartItemCount });
         }
+
 
         // Usuwanie produktu z koszyka
         [HttpPost]
