@@ -300,6 +300,28 @@ namespace projekt_.NET_schronisko.Migrations
                     b.ToTable("Product");
                 });
 
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.ProductImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductImages");
+                });
+
             modelBuilder.Entity("projekt_.NET_schronisko.Models.Users", b =>
                 {
                     b.Property<string>("Id")
@@ -458,6 +480,17 @@ namespace projekt_.NET_schronisko.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.ProductImage", b =>
+                {
+                    b.HasOne("projekt_.NET_schronisko.Models.Product", "Product")
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("projekt_.NET_schronisko.Models.Cart", b =>
                 {
                     b.Navigation("Items");
@@ -470,6 +503,8 @@ namespace projekt_.NET_schronisko.Migrations
 
             modelBuilder.Entity("projekt_.NET_schronisko.Models.Product", b =>
                 {
+                    b.Navigation("Images");
+
                     b.Navigation("ProduktyZamowienia");
                 });
 #pragma warning restore 612, 618

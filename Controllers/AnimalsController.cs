@@ -102,6 +102,7 @@ namespace projekt_.NET_schronisko.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Pracownik")]
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Species,Bio,Status")] Animal animal)
         {
             if (id != animal.ID)
@@ -133,6 +134,7 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
         // GET: Animals/Delete/5
+        [Authorize(Roles = "Pracownik")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

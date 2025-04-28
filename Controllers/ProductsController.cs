@@ -7,23 +7,32 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using projekt_.NET_schronisko.Data;
+using projekt_.NET_schronisko.Dto;
+using projekt_.NET_schronisko.Interfaces;
 using projekt_.NET_schronisko.Models;
+using projekt_.NET_schronisko.Services;
 
 namespace projekt_.NET_schronisko.Controllers
 {
     public class ProductsController : Controller
     {
         private readonly ShelterContext _context;
+        private readonly IProductService _productService;
+        private readonly IWebHostEnvironment _env;
 
-        public ProductsController(ShelterContext context)
+        public ProductsController(ShelterContext context, IProductService productService, IWebHostEnvironment env)
         {
             _context = context;
+            _productService = productService;
+            _env = env; 
         }
 
         // GET: Products
         public async Task<IActionResult> Index(decimal? minPrice, decimal? maxPrice, string category)
         {
-            var products = _context.Product.AsQueryable();
+            var products = _context.Product
+                       .Include(p => p.Images)
+                       .AsQueryable();
 
             if (minPrice.HasValue)
             {
@@ -46,13 +55,10 @@ namespace projekt_.NET_schronisko.Controllers
         // GET: Products/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var product = await _context.Product
+                .Include(p => p.Images)
                 .FirstOrDefaultAsync(m => m.ID == id);
+
             if (product == null)
             {
                 return NotFound();
@@ -60,6 +66,7 @@ namespace projekt_.NET_schronisko.Controllers
 
             return View(product);
         }
+
 
         // GET: Products/Create
         [Authorize(Roles = "Pracownik")]
@@ -78,62 +85,60 @@ namespace projekt_.NET_schronisko.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Pracownik")]
-        public async Task<IActionResult> Create([Bind("ID,Name,Price,Category")] Product product)
+        public async Task<IActionResult> Create(ProductDto productDto)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);  // Dodanie produktu do kontekstu
-                await _context.SaveChangesAsync();  // Zapis do bazy danych
-                return RedirectToAction(nameof(Index));  // Po zapisaniu przekierowanie do listy produktów
-            }
-            else
-            {
-                foreach (var state in ModelState)
-                {
-                    foreach (var error in state.Value.Errors)
-                    {
-                        Console.WriteLine($"Błąd w polu {state.Key}: {error.ErrorMessage}");
-                    }
-                }
+                await _productService.CreateProductAsync(productDto);
+                return RedirectToAction(nameof(Index));
             }
 
-                // Jeśli model nie jest prawidłowy, powrót do widoku
-                return View(product);
+            var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
+            ViewBag.Categories = new SelectList(categories);
+
+            return View(productDto);
         }
+
+
 
 
 
 
         [Authorize(Roles = "Pracownik")]
         public async Task<IActionResult> Edit(int id)
-
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Product.FindAsync(id);
+            var product = await _context.Product.Include(p => p.Images)
+                                                 .FirstOrDefaultAsync(p => p.ID == id);
             if (product == null)
             {
                 return NotFound();
             }
 
-            var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
+            var productDto = new ProductDto
+            {
+                ID = product.ID,
+                Name = product.Name,
+                Price = product.Price,
+                Category = product.Category,
+                Images = new List<IFormFile>() 
+            };
 
+            var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
             ViewBag.Categories = new SelectList(categories);
 
-            return View(product);
+            return View(productDto);
         }
 
         // POST: Products/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Price,Category")] Product product)
+        [Authorize(Roles = "Pracownik")]
+        public async Task<IActionResult> Edit(int id, ProductDto productDto)
         {
-            if (id != product.ID)
+            if (id != productDto.ID)
             {
                 return NotFound();
             }
@@ -142,12 +147,11 @@ namespace projekt_.NET_schronisko.Controllers
             {
                 try
                 {
-                    _context.Update(product);
-                    await _context.SaveChangesAsync();
+                    await _productService.UpdateProductAsync(productDto);
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception)
                 {
-                    if (!ProductExists(product.ID))
+                    if (!ProductExists(productDto.ID))
                     {
                         return NotFound();
                     }
@@ -160,13 +164,14 @@ namespace projekt_.NET_schronisko.Controllers
             }
 
             var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
-
             ViewBag.Categories = new SelectList(categories);
 
-            return View(product);
+            return View(productDto);
         }
 
+
         // GET: Products/Delete/5
+        [Authorize(Roles = "Pracownik")]
         public async Task<IActionResult> Delete(int id)
         {
             if (id == null)
@@ -186,18 +191,33 @@ namespace projekt_.NET_schronisko.Controllers
 
         // POST: Products/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Pracownik")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Product.FindAsync(id);
+            var product = await _context.Product
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.ID == id);
+
             if (product != null)
             {
+                // Usuwanie zdjęć z dysku
+                foreach (var image in product.Images)
+                {
+                    var fullPath = Path.Combine(_env.WebRootPath, image.ImageUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(fullPath))
+                    {
+                        System.IO.File.Delete(fullPath);
+                    }
+                } 
+
                 _context.Product.Remove(product);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
 
         private bool ProductExists(int id)
         {
