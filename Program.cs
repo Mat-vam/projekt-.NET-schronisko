@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using projekt_.NET_schronisko.Models;
 using projekt_.NET_schronisko.Services;
+using projekt_.NET_schronisko.Interfaces;
 
 public class Program
 {
@@ -13,7 +14,7 @@ public class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews();
         builder.Services.AddScoped<ICartService, CartService>(); // Rejestracja serwisu koszyka
-
+        builder.Services.AddScoped<IProductService, ProductService>();
         builder.Services.AddDbContext<ShelterContext>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));

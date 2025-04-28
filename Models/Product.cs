@@ -12,6 +12,6 @@ namespace projekt_.NET_schronisko.Models
         public string Category { get; set; }
         [ValidateNever]
         public ICollection<OrderProduct> ProduktyZamowienia { get; set; }
-
+        public ICollection<ProductImage> Images { get; set; }
     }
 }
