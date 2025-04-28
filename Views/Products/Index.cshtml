@@ -86,14 +86,6 @@
     </tbody>
 </table>
 
-<!-- Koszyk z licznikiem -->
-@if (isClient)
-{
-    <div class="mt-4">
-        <strong>Koszyk:</strong> <span id="cartItemCount">@ViewData["CartItemCount"]</span> produktów
-    </div>
-}
-
 <!-- JavaScript -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -122,12 +114,18 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Zaktualizuj liczbę produktów w koszyku bez powiadomienia
+                    // Zaktualizuj licznik pod tabelką
                     const cartCounter = document.getElementById("cartItemCount");
                     if (cartCounter) {
                         cartCounter.innerText = `${data.cartItemCount}`;
                     }
-                })
+
+                    // Zaktualizuj licznik w nagłówku (przy koszyku)
+                    const headerCartCounter = document.getElementById("cart-count");
+                    if (headerCartCounter) {
+                        headerCartCounter.innerText = `${data.cartItemCount}`;
+                    }
+                    })
                 .catch(error => {
                     console.error("Błąd:", error);
                 });
