@@ -20,6 +20,14 @@ public class Program
             options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
         });
 
+        // Dodaj us³ugi sesji
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30); // czas trwania sesji
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        }); 
+        
         builder.Services.AddIdentity<Users, IdentityRole>(options =>
         {
             options.Password.RequireNonAlphanumeric = false;

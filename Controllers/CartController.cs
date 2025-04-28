@@ -214,5 +214,20 @@ namespace projekt_.NET_schronisko.Controllers
             return Json(new { success = true });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetCartItemCountAPI()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Json(new { count = 0 });
+
+            var cart = await _context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            int count = cart?.Items.Sum(item => item.Quantity) ?? 0;
+
+            return Json(new { count });
+        }
     }
 }

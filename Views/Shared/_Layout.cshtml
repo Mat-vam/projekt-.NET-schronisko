@@ -52,8 +52,8 @@
                             <li class="nav-item">
                                 <a href="@Url.Action("Index", "Cart")" class="nav-link">
                                     <i class="fa fa-shopping-cart"></i>
-                                    <span class="badge badge-warning">
-                                        @ViewData["CartItemCount"] 
+                                    <span id="cart-count" class="badge bg-warning text-dark">
+                                        @ViewData["CartItemCount"]
                                     </span>
                                 </a>
                             </li>
@@ -79,5 +79,49 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function updateCartCount(count) {
+                const counter = document.getElementById('cart-count');
+                if (counter) {
+                    counter.innerText = count;
+                }
+            }
+
+            document.querySelectorAll('.add-to-cart-button').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault(); // zapobiega domyślnemu wysłaniu formularza, jeśli jest
+
+                    const productId = this.getAttribute('data-product-id');
+                    const quantityInput = document.getElementById('quantity-' + productId);
+                    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+
+                    fetch('/Cart/AddToCart', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        },
+                        body: JSON.stringify({
+                            productId: productId,
+                            quantity: quantity
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.cartItemCount !== undefined) {
+                                updateCartCount(data.cartItemCount);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Błąd podczas dodawania do koszyka:', error);
+                        });
+                });
+            });
+        });
+    </script>
+
+
 </body>
 </html>
