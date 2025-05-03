@@ -1,4 +1,4 @@
-﻿@model projekt_.NET_schronisko.Models.Animal
+﻿@model projekt_.NET_schronisko.Repository.AnimalRepo
 
 @{
     ViewData["Title"] = "Edit";
@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="ID" />
             <div class="form-group">
@@ -33,6 +33,11 @@
                 <input asp-for="Status" class="form-control" />
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label for="Images">Dodaj nowe zdjęcia</label>
+                <input type="file" name="Images" multiple class="form-control" />
+            </div>
+
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>

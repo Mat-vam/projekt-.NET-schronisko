@@ -15,6 +15,7 @@ namespace projekt_.NET_schronisko.Data
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<AnimalImage> AnimalImages { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

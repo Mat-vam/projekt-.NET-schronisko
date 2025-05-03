@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using projekt_.NET_schronisko.Data;
-using projekt_.NET_schronisko.Dto;
+using projekt_.NET_schronisko.Repository;
 using projekt_.NET_schronisko.Interfaces;
 using projekt_.NET_schronisko.Models;
 using projekt_.NET_schronisko.Services;
@@ -85,18 +85,18 @@ namespace projekt_.NET_schronisko.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Pracownik")]
-        public async Task<IActionResult> Create(ProductDto productDto)
+        public async Task<IActionResult> Create(ProductRepo productRepo)
         {
             if (ModelState.IsValid)
             {
-                await _productService.CreateProductAsync(productDto);
+                await _productService.CreateProductAsync(productRepo);
                 return RedirectToAction(nameof(Index));
             }
 
             var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
             ViewBag.Categories = new SelectList(categories);
 
-            return View(productDto);
+            return View(productRepo);
         }
 
 
@@ -114,7 +114,7 @@ namespace projekt_.NET_schronisko.Controllers
                 return NotFound();
             }
 
-            var productDto = new ProductDto
+            var productRepo = new ProductRepo
             {
                 ID = product.ID,
                 Name = product.Name,
@@ -126,7 +126,7 @@ namespace projekt_.NET_schronisko.Controllers
             var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
             ViewBag.Categories = new SelectList(categories);
 
-            return View(productDto);
+            return View(productRepo);
         }
 
         // POST: Products/Edit/5
@@ -136,9 +136,9 @@ namespace projekt_.NET_schronisko.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Pracownik")]
-        public async Task<IActionResult> Edit(int id, ProductDto productDto)
+        public async Task<IActionResult> Edit(int id, ProductRepo productRepo)
         {
-            if (id != productDto.ID)
+            if (id != productRepo.ID)
             {
                 return NotFound();
             }
@@ -147,11 +147,11 @@ namespace projekt_.NET_schronisko.Controllers
             {
                 try
                 {
-                    await _productService.UpdateProductAsync(productDto);
+                    await _productService.UpdateProductAsync(productRepo);
                 }
                 catch (Exception)
                 {
-                    if (!ProductExists(productDto.ID))
+                    if (!ProductExists(productRepo.ID))
                     {
                         return NotFound();
                     }
@@ -166,7 +166,7 @@ namespace projekt_.NET_schronisko.Controllers
             var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
             ViewBag.Categories = new SelectList(categories);
 
-            return View(productDto);
+            return View(productRepo);
         }
 
 
@@ -189,30 +189,15 @@ namespace projekt_.NET_schronisko.Controllers
             return View(product);
         }
 
-        // POST: Products/Delete/5
         [HttpPost, ActionName("Delete")]
         [Authorize(Roles = "Pracownik")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Product
-                .Include(p => p.Images)
-                .FirstOrDefaultAsync(p => p.ID == id);
-
-            if (product != null)
+            var success = await _productService.DeleteProductAsync(id);
+            if (!success)
             {
-                // Usuwanie zdjęć z dysku
-                foreach (var image in product.Images)
-                {
-                    var fullPath = Path.Combine(_env.WebRootPath, image.ImageUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(fullPath))
-                    {
-                        System.IO.File.Delete(fullPath);
-                    }
-                } 
-
-                _context.Product.Remove(product);
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
 
             return RedirectToAction(nameof(Index));
