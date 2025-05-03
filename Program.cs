@@ -15,6 +15,7 @@ public class Program
         builder.Services.AddControllersWithViews();
         builder.Services.AddScoped<ICartService, CartService>(); // Rejestracja serwisu koszyka
         builder.Services.AddScoped<IProductService, ProductService>();
+        builder.Services.AddScoped<IAnimalService, AnimalService>();
         builder.Services.AddDbContext<ShelterContext>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));

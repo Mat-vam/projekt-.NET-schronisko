@@ -184,6 +184,28 @@ namespace projekt_.NET_schronisko.Migrations
                     b.ToTable("Animal");
                 });
 
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.AnimalImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AnimalId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnimalId");
+
+                    b.ToTable("AnimalImages");
+                });
+
             modelBuilder.Entity("projekt_.NET_schronisko.Models.Cart", b =>
                 {
                     b.Property<int>("Id")
@@ -442,6 +464,17 @@ namespace projekt_.NET_schronisko.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.AnimalImage", b =>
+                {
+                    b.HasOne("projekt_.NET_schronisko.Models.Animal", "Animal")
+                        .WithMany("Images")
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Animal");
+                });
+
             modelBuilder.Entity("projekt_.NET_schronisko.Models.CartItem", b =>
                 {
                     b.HasOne("projekt_.NET_schronisko.Models.Cart", "Cart")
@@ -489,6 +522,11 @@ namespace projekt_.NET_schronisko.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("projekt_.NET_schronisko.Models.Animal", b =>
+                {
+                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("projekt_.NET_schronisko.Models.Cart", b =>

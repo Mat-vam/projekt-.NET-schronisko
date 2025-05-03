@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace projekt_.NET_schronisko.Dto
+namespace projekt_.NET_schronisko.Repository
 {
-    public class ProductDto
+    public class ProductRepo
     {
         public int ID { get; set; }
 

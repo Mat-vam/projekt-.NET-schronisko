@@ -35,6 +35,40 @@
             @Html.DisplayFor(model => model.Status)
         </dd>
     </dl>
+    @if (Model.Images != null && Model.Images.Any())
+    {
+        <div id="productGallery" class="text-center">
+            <img id="currentImage" src="@Model.Images.First().ImageUrl" alt="Animal Image" style="max-width: 400px; height: auto;" />
+
+            <div class="mt-2">
+                <button id="prevBtn" class="btn btn-secondary">←</button>
+                <button id="nextBtn" class="btn btn-secondary">→</button>
+            </div>
+        </div>
+
+        <script>
+            const images = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Images.Select(i => i.ImageUrl)));
+            let currentIndex = 0;
+
+            const currentImage = document.getElementById('currentImage');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            prevBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                currentImage.src = images[currentIndex];
+            });
+
+            nextBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % images.length;
+                currentImage.src = images[currentIndex];
+            });
+        </script>
+    }
+    else
+    {
+        <p>Brak zdjęć zwierzaka.</p>
+    }
 </div>
 
 <div>

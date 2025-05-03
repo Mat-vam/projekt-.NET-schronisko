@@ -7,23 +7,30 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using projekt_.NET_schronisko.Data;
+using projekt_.NET_schronisko.Interfaces;
 using projekt_.NET_schronisko.Models;
+using projekt_.NET_schronisko.Repository;
+using projekt_.NET_schronisko.Services;
 
 namespace projekt_.NET_schronisko.Controllers
 {
     public class AnimalsController : Controller
     {
         private readonly ShelterContext _context;
+        private readonly IAnimalService _animalService;
+        private readonly IWebHostEnvironment _env;
 
-        public AnimalsController(ShelterContext context)
+        public AnimalsController(ShelterContext context, IAnimalService animalService, IWebHostEnvironment env)
         {
             _context = context;
+            _animalService = animalService;
+            _env = env;
         }
 
         // GET: Animals
         public async Task<IActionResult> Index(string species, bool? adopted)
         {
-            var animals = _context.Animal.AsQueryable();
+            var animals = _context.Animal.Include(p=>p.Images).AsQueryable();
 
             if (!string.IsNullOrEmpty(species))
             {
@@ -46,7 +53,7 @@ namespace projekt_.NET_schronisko.Controllers
                 return NotFound();
             }
 
-            var animal = await _context.Animal
+            var animal = await _context.Animal.Include(p => p.Images)
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (animal == null)
             {
@@ -69,32 +76,38 @@ namespace projekt_.NET_schronisko.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Pracownik")]
-        public async Task<IActionResult> Create([Bind("ID,Name,Species,Bio,Status")] Animal animal)
+        public async Task<IActionResult> Create(AnimalRepo animalRepo)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(animal);
-                await _context.SaveChangesAsync();
+                await _animalService.CreateProductAsync(animalRepo); 
                 return RedirectToAction(nameof(Index));
             }
-            return View(animal);
+            return View(animalRepo);
         }
 
         [Authorize(Roles = "Pracownik")]
         public async Task<IActionResult> Edit(int? id)
 
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var animal = await _context.Animal.FindAsync(id);
+            var animal = await _context.Animal.Include(p => p.Images)
+                                     .FirstOrDefaultAsync(p => p.ID == id);
             if (animal == null)
             {
                 return NotFound();
             }
-            return View(animal);
+
+            var animalRepo = new AnimalRepo
+            {
+                ID = animal.ID,
+                Name = animal.Name,
+                Species = animal.Species,
+                Bio = animal.Bio,
+                Status = animal.Status,
+                Images = new List<IFormFile>()
+            };
+
+            return View(animalRepo);
         }
 
         // POST: Animals/Edit/5
@@ -103,9 +116,9 @@ namespace projekt_.NET_schronisko.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Pracownik")]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Species,Bio,Status")] Animal animal)
+        public async Task<IActionResult> Edit(int id, AnimalRepo animalRepo)
         {
-            if (id != animal.ID)
+            if (id != animalRepo.ID)
             {
                 return NotFound();
             }
@@ -114,12 +127,11 @@ namespace projekt_.NET_schronisko.Controllers
             {
                 try
                 {
-                    _context.Update(animal);
-                    await _context.SaveChangesAsync();
+                    await _animalService.UpdateProductAsync(animalRepo);
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception)
                 {
-                    if (!AnimalExists(animal.ID))
+                    if (!AnimalExists(animalRepo.ID))
                     {
                         return NotFound();
                     }
@@ -130,7 +142,7 @@ namespace projekt_.NET_schronisko.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(animal);
+            return View(animalRepo);
         }
 
         // GET: Animals/Delete/5
@@ -157,13 +169,12 @@ namespace projekt_.NET_schronisko.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var animal = await _context.Animal.FindAsync(id);
-            if (animal != null)
+            var success = await _animalService.DeleteProductAsync(id);
+            if (!success)
             {
-                _context.Animal.Remove(animal);
+                return NotFound();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

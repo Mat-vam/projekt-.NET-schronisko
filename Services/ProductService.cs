@@ -1,5 +1,5 @@
 ﻿using projekt_.NET_schronisko.Data;
-using projekt_.NET_schronisko.Dto;
+using projekt_.NET_schronisko.Repository;
 using projekt_.NET_schronisko.Interfaces;
 using projekt_.NET_schronisko.Models;
 using Microsoft.EntityFrameworkCore;
@@ -16,14 +16,14 @@ namespace projekt_.NET_schronisko.Services
             _env = env;
         }
 
-        public async Task<Product> CreateProductAsync(ProductDto productDto)
+        public async Task<Product> CreateProductAsync(ProductRepo productRepo)
         {
             // Mapowanie DTO na encję. Możesz użyć AutoMapper lub zwykłego mapowania.
             var product = new Product
             {
-                Name = productDto.Name,
-                Price = productDto.Price,
-                Category = productDto.Category,
+                Name = productRepo.Name,
+                Price = productRepo.Price,
+                Category = productRepo.Category,
                 Images = new List<ProductImage>()
             };
 
@@ -31,9 +31,9 @@ namespace projekt_.NET_schronisko.Services
             await _context.SaveChangesAsync(); // Zapisujemy, aby uzyskać wygenerowane ID produktu.
 
             // Obsługa przesłanych zdjęć
-            if (productDto.Images != null && productDto.Images.Any())
+            if (productRepo.Images != null && productRepo.Images.Any())
             {
-                foreach (var image in productDto.Images)
+                foreach (var image in productRepo.Images)
                 {
                     var fileName = Path.GetFileNameWithoutExtension(image.FileName) +
                                    "_" + Guid.NewGuid() +
@@ -61,28 +61,28 @@ namespace projekt_.NET_schronisko.Services
             return product;
         }
 
-        public async Task<Product> UpdateProductAsync(ProductDto productDto)
+        public async Task<Product> UpdateProductAsync(ProductRepo productRepo)
         {
             // Wczytanie istniejącego produktu
             var product = await _context.Product.Include(p => p.Images)
-                                                 .FirstOrDefaultAsync(p => p.ID == productDto.ID);
+                                                 .FirstOrDefaultAsync(p => p.ID == productRepo.ID);
             if (product == null)
             {
                 throw new Exception("Produkt nie został znaleziony");
             }
 
             // Aktualizacja podstawowych danych produktu (mapowanie właściwości)
-            product.Name = productDto.Name;
-            product.Price = productDto.Price;
-            product.Category = productDto.Category;
+            product.Name = productRepo.Name;
+            product.Price = productRepo.Price;
+            product.Category = productRepo.Category;
 
             _context.Product.Update(product);
             await _context.SaveChangesAsync();
 
             // Obsługa nowych przesłanych zdjęć (dodanie do galerii)
-            if (productDto.Images != null && productDto.Images.Any())
+            if (productRepo.Images != null && productRepo.Images.Any())
             {
-                foreach (var image in productDto.Images)
+                foreach (var image in productRepo.Images)
                 {
                     var fileName = Path.GetFileNameWithoutExtension(image.FileName) +
                                    "_" + Guid.NewGuid() +
@@ -111,6 +111,30 @@ namespace projekt_.NET_schronisko.Services
 
             return product;
         }
+        public async Task<bool> DeleteProductAsync(int id)
+        {
+            var product = await _context.Product
+                                        .Include(p => p.Images)
+                                        .FirstOrDefaultAsync(p => p.ID == id);
+
+            if (product == null)
+                return false;
+
+            foreach (var image in product.Images)
+            {
+                var fullPath = Path.Combine(_env.WebRootPath, image.ImageUrl.TrimStart('/'));
+                if (System.IO.File.Exists(fullPath))
+                {
+                    System.IO.File.Delete(fullPath);
+                }
+            }
+
+            _context.Product.Remove(product);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
     }
 
 }

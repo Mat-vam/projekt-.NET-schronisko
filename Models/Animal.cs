@@ -9,5 +9,6 @@ namespace projekt_.NET_schronisko.Models
         public string Species { get; set; }
         public string Bio { get; set; }
         public string Status { get; set; }
+        public ICollection<AnimalImage> Images { get; set; }
     }
 }
