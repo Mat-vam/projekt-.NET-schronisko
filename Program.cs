@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using projekt_.NET_schronisko.Models;
 using projekt_.NET_schronisko.Services;
 using projekt_.NET_schronisko.Interfaces;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+
 
 public class Program
 {
@@ -44,6 +47,31 @@ public class Program
                 .AddEntityFrameworkStores<ShelterContext>()
                 .AddDefaultTokenProviders();
 
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+        })
+        .AddCookie()
+        .AddGoogle(options =>
+        {
+            options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+            options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+            options.Events.OnCreatingTicket = context =>
+            {
+                var email = context.Identity?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                if (email == null || !email.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new Exception("Logowanie mo¿liwe tylko przez konto gmail.com");
+                }
+
+                return Task.CompletedTask;
+            };
+            
+            options.CallbackPath = "/signin-google";
+        });
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -58,6 +86,7 @@ public class Program
 
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllerRoute(
