@@ -89,7 +89,7 @@ namespace projekt_.NET_schronisko.Controllers
             if (product == null)
                 return NotFound("Nie znaleziono produktu.");
 
-            var existingItem = cart.Items.FirstOrDefault(i => request.ProductId == request.ProductId);
+            var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == request.ProductId);
 
             if (existingItem != null)
             {

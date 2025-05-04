@@ -23,7 +23,13 @@ namespace projekt_.NET_schronisko.Controllers
         // G³ówna strona - Index
         public async Task<IActionResult> Index()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await _userManager.GetUserAsync(User); 
+            
+            if (User.Identity.IsAuthenticated)
+            {
+                ViewBag.FullName = user?.FullName;
+            }
+            
             if (user != null)
             {
                 var cartItemCount = await _cartService.GetCartItemCount(user.Id);

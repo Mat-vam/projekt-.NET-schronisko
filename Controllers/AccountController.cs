@@ -169,7 +169,6 @@ namespace projekt_.NET_schronisko.Controllers
         public IActionResult GoogleLogin(string returnUrl = "/")
         {
             var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse", new { returnUrl }) };
-            Console.WriteLine("GoogleLogin triggered. Redirecting to Google...");
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
@@ -203,8 +202,6 @@ namespace projekt_.NET_schronisko.Controllers
 
             await signInManager.SignInAsync(user, isPersistent: false);
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            
-            Console.WriteLine($"Użytkownik {user.Email} został zalogowany.");
 
             return LocalRedirect(returnUrl);
         }
