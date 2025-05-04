@@ -1,6 +1,7 @@
 ﻿using projekt_.NET_schronisko.Models;
 using Microsoft.EntityFrameworkCore;
 using projekt_.NET_schronisko.Data;
+using projekt_.NET_schronisko.ViewModels;
 
 namespace projekt_.NET_schronisko.Services
 {
@@ -56,6 +57,38 @@ namespace projekt_.NET_schronisko.Services
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> PlaceOrderAsync(string userId, OrderFormViewModel model)
+        {
+            var cart = await _context.Carts
+                .Include(c => c.Items)
+                .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (cart == null || cart.Items.Count == 0)
+                return false;
+
+            var order = new Orders
+            {
+                CustomerName = $"{model.FirstName} {model.LastName}",
+                DeliveryAddress = $"{model.PostalCode}, {model.City}, {model.Address}",
+                ProduktyZamowienia = cart.Items
+                    .GroupBy(i => i.ProductId)
+                    .Select(g => new OrderProduct
+                    {
+                        ProductId = g.Key,
+                        Ilosc = g.Sum(i => i.Quantity)
+                    }).ToList()
+            };
+
+            _context.Orders.Add(order);
+
+            _context.Carts.Remove(cart); // usunięcie całego koszyka
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }
