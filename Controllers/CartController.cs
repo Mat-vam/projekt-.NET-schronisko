@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using projekt_.NET_schronisko.ViewModels;
+using projekt_.NET_schronisko.Services;
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -17,27 +18,27 @@ namespace projekt_.NET_schronisko.Controllers
     {
         private readonly ShelterContext _context;
         private readonly UserManager<Users> _userManager;
+        private readonly ICartService _cartService;
 
-        public CartController(ShelterContext context, UserManager<Users> userManager)
+        public CartController(ShelterContext context, UserManager<Users> userManager, ICartService cartService)
         {
             _context = context;
             _userManager = userManager;
+            _cartService = cartService;
         }
 
-        // Pomocnicza klasa do JSON
         public class CartAddRequest
         {
             public int ProductId { get; set; }
             public int Quantity { get; set; }
         }
 
-        // Wyświetlanie zawartości koszyka
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
             var cart = await _context.Carts
                 .Include(c => c.Items)
-                    .ThenInclude(i => i.Product)
+                .ThenInclude(i => i.Product)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             if (cart == null)
@@ -51,15 +52,12 @@ namespace projekt_.NET_schronisko.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Ustawienie łącznej ceny w ViewBag
             ViewBag.TotalPrice = cart.Items.Sum(i => i.Quantity * i.Product.Price);
-            // Liczba produktów w koszyku w ViewData
             ViewData["CartItemCount"] = await GetCartItemCount(user.Id);
 
-            return View(cart); // Przekazanie całego koszyka do widoku
+            return View(cart);
         }
 
-        // Dodawanie produktu do koszyka przez fetch
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCart([FromBody] CartAddRequest request)
@@ -113,8 +111,6 @@ namespace projekt_.NET_schronisko.Controllers
             return Json(new { cartItemCount });
         }
 
-
-        // Usuwanie produktu z koszyka
         [HttpPost]
         public async Task<IActionResult> RemoveFromCart(int cartItemId)
         {
@@ -124,9 +120,7 @@ namespace projekt_.NET_schronisko.Controllers
                 .FirstOrDefaultAsync(ci => ci.Id == cartItemId);
 
             if (cartItem == null)
-            {
                 return Json(new { success = false, message = "Nie znaleziono elementu koszyka." });
-            }
 
             var userId = cartItem.Cart.UserId;
 
@@ -149,7 +143,6 @@ namespace projekt_.NET_schronisko.Controllers
             });
         }
 
-        // Zmiana ilości produktu w koszyku
         [HttpPost]
         public async Task<IActionResult> UpdateCartItemQuantity(int cartItemId, int quantity)
         {
@@ -170,7 +163,6 @@ namespace projekt_.NET_schronisko.Controllers
             return RedirectToAction("Index");
         }
 
-        // Liczba produktów w koszyku
         public async Task<int> GetCartItemCount(string userId)
         {
             var cart = await _context.Carts
@@ -188,30 +180,13 @@ namespace projekt_.NET_schronisko.Controllers
                 return BadRequest(new { success = false, message = "Błędne dane." });
 
             var user = await _userManager.GetUserAsync(User);
-            var cart = await _context.Carts
-                .Include(c => c.Items)
-                .ThenInclude(i => i.Product)
-                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+            var success = await _cartService.PlaceOrderAsync(user.Id, model);
 
-            if (cart == null || !cart.Items.Any())
-                return BadRequest(new { success = false, message = "Koszyk jest pusty." });
-
-            var order = new Orders
+            return Json(new
             {
-                CustomerName = $"{model.FirstName} {model.LastName}",
-                DeliveryAddress = $"{model.PostalCode}, {model.City}, {model.Address}",
-                ProduktyZamowienia = cart.Items.Select(i => new OrderProduct
-                {
-                    ProductId = i.ProductId,
-                    Ilosc = i.Quantity
-                }).ToList()
-            };
-
-            _context.Orders.Add(order);
-            _context.CartItems.RemoveRange(cart.Items);
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true });
+                success = success,
+                message = success ? "Zamówienie zostało złożone." : "Koszyk jest pusty lub wystąpił błąd."
+            });
         }
 
         [HttpGet]
