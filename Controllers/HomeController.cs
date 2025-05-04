@@ -33,10 +33,6 @@ namespace projekt_.NET_schronisko.Controllers
             return View();
         }
 
-
-
-
-
         // Strona Prywatnoœci
         public IActionResult Privacy()
         {

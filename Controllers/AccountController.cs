@@ -1,7 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using projekt_.NET_schronisko.Models;
 using projekt_.NET_schronisko.ViewModels;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Google;
+
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -158,6 +163,50 @@ namespace projekt_.NET_schronisko.Controllers
         {
             await signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult GoogleLogin(string returnUrl = "/")
+        {
+            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse", new { returnUrl }) };
+            Console.WriteLine("GoogleLogin triggered. Redirecting to Google...");
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GoogleResponse(string returnUrl = "/")
+        {
+            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+
+            if (!result.Succeeded)
+                return RedirectToAction("Login");
+
+            var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
+            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+            if (email == null || !email.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Login");
+
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                user = new Users
+                {
+                    UserName = email,
+                    Email = email,
+                    FullName = name
+                };
+                await userManager.CreateAsync(user);
+                await userManager.AddToRoleAsync(user, "Klient");
+            }
+
+            await signInManager.SignInAsync(user, isPersistent: false);
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            
+            Console.WriteLine($"Użytkownik {user.Email} został zalogowany.");
+
+            return LocalRedirect(returnUrl);
         }
     }
 }
