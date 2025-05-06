@@ -1,81 +1,64 @@
 ﻿@model projekt_.NET_schronisko.Models.Animal
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegóły";
 }
 
-<h1>Details</h1>
+<h1 class="mb-4">Szczegóły zwierzaka</h1>
 
-<div>
-    <h4>Animal</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Species)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Species)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Bio)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Bio)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-    </dl>
-    @if (Model.Images != null && Model.Images.Any())
-    {
-        <div id="productGallery" class="text-center">
-            <img id="currentImage" src="@Model.Images.First().ImageUrl" alt="Animal Image" style="max-width: 400px; height: auto;" />
+<div class="card shadow-sm">
+    <div class="row g-0">
+        <div class="col-md-5 d-flex flex-column align-items-center justify-content-center p-3">
+            @if (Model.Images != null && Model.Images.Any())
+            {
+                <img id="currentImage" src="@Model.Images.First().ImageUrl" class="img-fluid rounded mb-2" style="max-height: 300px; object-fit: contain;" alt="Zdjęcie zwierzaka" />
 
-            <div class="mt-2">
-                <button id="prevBtn" class="btn btn-secondary">←</button>
-                <button id="nextBtn" class="btn btn-secondary">→</button>
+                <div class="btn-group">
+                    <button id="prevBtn" class="btn btn-outline-secondary"><i class="bi bi-chevron-left"></i></button>
+                    <button id="nextBtn" class="btn btn-outline-secondary"><i class="bi bi-chevron-right"></i></button>
+                </div>
+
+                <script>
+                    const images = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Images.Select(i => i.ImageUrl)));
+                    let currentIndex = 0;
+
+                    const currentImage = document.getElementById('currentImage');
+                    const prevBtn = document.getElementById('prevBtn');
+                    const nextBtn = document.getElementById('nextBtn');
+
+                    prevBtn.addEventListener('click', () => {
+                        currentIndex = (currentIndex - 1 + images.length) % images.length;
+                        currentImage.src = images[currentIndex];
+                    });
+
+                    nextBtn.addEventListener('click', () => {
+                        currentIndex = (currentIndex + 1) % images.length;
+                        currentImage.src = images[currentIndex];
+                    });
+                </script>
+            }
+            else
+            {
+                <div class="text-muted text-center">Brak zdjęć zwierzaka.</div>
+            }
+        </div>
+
+        <div class="col-md-7">
+            <div class="card-body">
+                <h3 class="card-title">@Model.Name</h3>
+                <p class="card-text"><strong>Gatunek:</strong> @Model.Species</p>
+                <p class="card-text"><strong>Opis:</strong> @Model.Bio</p>
+                <p class="card-text"><strong>Status:</strong> @Model.Status</p>
+
+                <div class="mt-4">
+                    @if (User.IsInRole("Pracownik"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.ID" class="btn btn-warning me-2">Edytuj</a>
+                    }
+                    <a asp-action="Index" class="btn btn-secondary">Powrót do listy</a>
+                </div>
             </div>
         </div>
 
-        <script>
-            const images = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Images.Select(i => i.ImageUrl)));
-            let currentIndex = 0;
-
-            const currentImage = document.getElementById('currentImage');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-
-            prevBtn.addEventListener('click', () => {
-                currentIndex = (currentIndex - 1 + images.length) % images.length;
-                currentImage.src = images[currentIndex];
-            });
-
-            nextBtn.addEventListener('click', () => {
-                currentIndex = (currentIndex + 1) % images.length;
-                currentImage.src = images[currentIndex];
-            });
-        </script>
-    }
-    else
-    {
-        <p>Brak zdjęć zwierzaka.</p>
-    }
-</div>
-
-<div>
-    @if (User.IsInRole("Pracownik"))
-    {
-        <a asp-action="Edit" asp-route-id="@Model?.ID">Edytuj</a>
-        <span> | </span>
-    }
-    <a asp-action="Index">Powrót do listy</a>
+    </div>
 </div>

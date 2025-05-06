@@ -4,7 +4,7 @@
 @inject UserManager<Users> UserManager
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Produkty";
 
     var user = await UserManager.GetUserAsync(User);
     var roles = await UserManager.GetRolesAsync(user);
@@ -12,124 +12,100 @@
     bool isEmployee = roles.Contains("Pracownik");
 }
 
-<h1>Produkty</h1>
+<div class="container">
+    <h1 class="my-4">Produkty</h1>
 
-<!-- Ukryty formularz z tokenem CSRF -->
-<form id="csrfTokenForm">@Html.AntiForgeryToken()</form>
+    <!-- Ukryty formularz z tokenem CSRF -->
+    <form id="csrfTokenForm">@Html.AntiForgeryToken()</form>
 
-@if (isEmployee)
-{
-    <a asp-action="Create" class="btn btn-success mb-3">Dodaj nowy produkt</a>
-}
+    <!-- Przycisk do dodawania nowego produktu tylko dla pracowników -->
+    @if (isEmployee)
+    {
+        <a asp-action="Create" class="btn btn-success mb-3">Dodaj nowy produkt</a>
+    }
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.Name)</th>
-            <th>@Html.DisplayNameFor(model => model.Price)</th>
-            <th>@Html.DisplayNameFor(model => model.Category)</th>
-
-            @if (isClient)
-            {
-                <th>Ilość</th>
-                <th></th>
-            }
-
-            @if (isEmployee)
-            {
-                <th>Akcje</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
+    <!-- Sekcja produktów - karty -->
+    <div class="row">
         @foreach (var item in Model)
         {
-            <tr>
-                <td>
-                @if (item.Images != null && item.Images.Any())
-                {
-                        <img src="@item.Images.FirstOrDefault()?.ImageUrl" alt="Produkt" style="max-width: 100px; max-height: 100px;" />
-                    }
-                else
-                {
-                    <span>Brak zdjęcia</span>
-                }
-                </td>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img class="card-img-top" src="@item.Images?.FirstOrDefault()?.ImageUrl" alt="Produkt" style="max-height: 200px; object-fit: cover;" />
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Name</h5>
+                        <p class="card-text">
+                            <strong>Cena:</strong> @item.Price PLN<br />
+                            <strong>Kategoria:</strong> @item.Category
+                        </p>
 
-                <td>@Html.DisplayFor(modelItem => item.Name)</td>
-                <td>@Html.DisplayFor(modelItem => item.Price)</td>
-                <td>@Html.DisplayFor(modelItem => item.Category)</td>
-
-                @if (isClient)
-                {
-                    <td>
-                        <input type="number" name="quantity_@item.ID" class="form-control quantity" value="1" min="1" data-product-id="@item.ID" />
-                    </td>
-                    <td>
-                        <button class="btn btn-primary add-to-cart-btn" data-product-id="@item.ID">Dodaj do koszyka</button>
-                    </td>
-                }
-
-                <td>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a asp-action="Details" asp-route-id="@item.ID" class="btn btn-info btn-sm">Szczegóły</a>
-
-                        @if (isEmployee)
+                        @if (isClient)
                         {
-                            <a asp-action="Edit" asp-route-id="@item.ID" class="btn btn-warning btn-sm">Edytuj</a>
-                            <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-danger btn-sm">Usuń</a>
+                            <div class="d-flex justify-content-between">
+                                <input type="number" name="quantity_@item.ID" class="form-control quantity" value="1" min="1" data-product-id="@item.ID" style="width: 80px;" />
+                                <button class="btn btn-primary add-to-cart-btn" data-product-id="@item.ID">Dodaj do koszyka</button>
+                            </div>
                         }
+
+                        <div class="d-flex justify-content-between mt-3">
+                            <a asp-action="Details" asp-route-id="@item.ID" class="btn btn-info btn-sm">Szczegóły</a>
+
+                            @if (isEmployee)
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.ID" class="btn btn-warning btn-sm">Edytuj</a>
+                                <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-danger btn-sm">Usuń</a>
+                            }
+                        </div>
                     </div>
-                </td>
-            </tr>
+                </div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
 
-<!-- JavaScript -->
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".add-to-cart-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                const productId = this.dataset.productId;
-                const quantityInput = document.querySelector(`input[data-product-id="${productId}"]`);
-                const quantity = parseInt(quantityInput?.value || "1");
+    <!-- JavaScript do obsługi koszyka -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".add-to-cart-btn").forEach(button => {
+                button.addEventListener("click", function () {
+                    const productId = this.dataset.productId;
+                    const quantityInput = document.querySelector(`input[data-product-id="${productId}"]`);
+                    const quantity = parseInt(quantityInput?.value || "1");
 
-                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-                const token = tokenInput?.value;
+                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    const token = tokenInput?.value;
 
-                fetch("/Cart/AddToCart", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "RequestVerificationToken": token
-                    },
-                    body: JSON.stringify({
-                        productId: productId,
-                        quantity: quantity
+                    fetch("/Cart/AddToCart", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "RequestVerificationToken": token
+                        },
+                        body: JSON.stringify({
+                            productId: productId,
+                            quantity: quantity
+                        })
                     })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error("Błąd dodawania produktu.");
-                    return response.json();
-                })
-                .then(data => {
-                    // Zaktualizuj licznik pod tabelką
-                    const cartCounter = document.getElementById("cartItemCount");
-                    if (cartCounter) {
-                        cartCounter.innerText = `${data.cartItemCount}`;
-                    }
+                        .then(response => {
+                            if (!response.ok) throw new Error("Błąd dodawania produktu.");
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Zaktualizuj licznik pod tabelką
+                            const cartCounter = document.getElementById("cartItemCount");
+                            if (cartCounter) {
+                                cartCounter.innerText = `${data.cartItemCount}`;
+                            }
 
-                    // Zaktualizuj licznik w nagłówku (przy koszyku)
-                    const headerCartCounter = document.getElementById("cart-count");
-                    if (headerCartCounter) {
-                        headerCartCounter.innerText = `${data.cartItemCount}`;
-                    }
-                    })
-                .catch(error => {
-                    console.error("Błąd:", error);
+                            // Zaktualizuj licznik w nagłówku (przy koszyku)
+                            const headerCartCounter = document.getElementById("cart-count");
+                            if (headerCartCounter) {
+                                headerCartCounter.innerText = `${data.cartItemCount}`;
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Błąd:", error);
+                        });
                 });
             });
         });
-    });
-</script>
+    </script>
+</div>

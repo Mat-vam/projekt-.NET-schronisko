@@ -1,54 +1,60 @@
 ﻿@model projekt_.NET_schronisko.Repository.AnimalRepo
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edytuj zwierzaka";
 }
 
-<h1>Edit</h1>
+<div class="account-container">
+    <div class="account-box">
+        <h2 class="text-center mb-4">Edytuj zwierzaka</h2>
 
-<h4>Animal</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
         <form asp-action="Edit" enctype="multipart/form-data" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
             <input type="hidden" asp-for="ID" />
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label">Imię</label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Species" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Species" class="form-label">Gatunek</label>
                 <input asp-for="Species" class="form-control" />
                 <span asp-validation-for="Species" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Bio" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Bio" class="form-label">Opis</label>
                 <input asp-for="Bio" class="form-control" />
                 <span asp-validation-for="Bio" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label">Status adopcji</label>
                 <input asp-for="Status" class="form-control" />
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label for="Images">Dodaj nowe zdjęcia</label>
+
+            <div class="mb-3">
+                <label for="Images" class="form-label">Dodaj nowe zdjęcia</label>
                 <input type="file" name="Images" multiple class="form-control" />
             </div>
 
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+            <div class="d-grid mb-3">
+                <input type="submit" value="Zapisz zmiany" class="btn btn-warning p-2 text-white" />
+            </div>
+
+            <div class="text-center">
+                <a asp-action="Index" class="text-decoration-none">Powrót do listy</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

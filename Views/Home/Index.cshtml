@@ -1,16 +1,36 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
-}
-
-@if (ViewBag.FullName != null)
-{
-    <div class="alert alert-success">
-        Witaj, @ViewBag.FullName!
-    </div>
+    ViewData["Title"] = "Strona Główna";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-    <p>Nowa zmiana</p>
+    <h1 class="display-4">Witamy w naszym Schronisku i Sklepie Zoologicznym!</h1>
+    <p class="lead">Miejsce, gdzie każde zwierzę znajdzie nowy dom, a właściciel wszystko, czego potrzebuje.</p>
 </div>
+
+<section class="info-section">
+    <h2>🐾 O nas</h2>
+    <p>
+        Nasze schronisko zapewnia bezpieczne i przyjazne schronienie dla porzuconych i bezdomnych zwierząt.
+        Każdego dnia staramy się znaleźć nowy dom dla psów, kotów i innych pupili, które potrzebują miłości i opieki.
+    </p>
+    <p>
+        Wspierając nasze działania, możesz adoptować zwierzę, przekazać darowiznę lub po prostu odwiedzić nas i poznać naszych podopiecznych.
+    </p>
+</section>
+
+<section class="info-section">
+    <h2>🛒 Sklep zoologiczny</h2>
+    <p>
+        W naszej ofercie znajdziesz wszystko, czego potrzebujesz do opieki nad swoim pupilem:
+        karmy, akcesoria, zabawki, legowiska i wiele więcej. Dochód ze sklepu wspiera działalność naszego schroniska.
+    </p>
+</section>
+
+<section class="info-section">
+    <h2>🤝 Jak możesz pomóc?</h2>
+    <ul>
+        <li>Adoptuj – daj zwierzakowi nowy dom.</li>
+        <li>Wolontariat – dołącz do naszej ekipy i pomóż na miejscu.</li>
+        <li>Wsparcie finansowe – każda złotówka się liczy.</li>
+    </ul>
+</section>
