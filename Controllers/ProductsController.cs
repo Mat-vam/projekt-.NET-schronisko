@@ -11,6 +11,8 @@ using projekt_.NET_schronisko.Repository;
 using projekt_.NET_schronisko.Interfaces;
 using projekt_.NET_schronisko.Models;
 using projekt_.NET_schronisko.Services;
+using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.AspNetCore.Identity;
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -19,12 +21,16 @@ namespace projekt_.NET_schronisko.Controllers
         private readonly ShelterContext _context;
         private readonly IProductService _productService;
         private readonly IWebHostEnvironment _env;
+        private readonly UserManager<Users> _userManager;
+        private readonly ICartService _cartService;
 
-        public ProductsController(ShelterContext context, IProductService productService, IWebHostEnvironment env)
+        public ProductsController(ShelterContext context, IProductService productService, IWebHostEnvironment env, UserManager<Users> userManager, ICartService cartService)
         {
             _context = context;
             _productService = productService;
-            _env = env; 
+            _env = env;
+            _userManager = userManager;
+            _cartService = cartService;
         }
 
         // GET: Products
@@ -47,6 +53,12 @@ namespace projekt_.NET_schronisko.Controllers
             if (!string.IsNullOrEmpty(category))
             {
                 products = products.Where(p => p.Category == category);
+            }
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var cartItemCount = await _cartService.GetCartItemCount(user.Id);
+                ViewData["CartItemCount"] = cartItemCount;
             }
 
             return View(await products.ToListAsync());

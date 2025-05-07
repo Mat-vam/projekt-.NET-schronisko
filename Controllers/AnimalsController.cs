@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,12 +20,16 @@ namespace projekt_.NET_schronisko.Controllers
         private readonly ShelterContext _context;
         private readonly IAnimalService _animalService;
         private readonly IWebHostEnvironment _env;
+        private readonly UserManager<Users> _userManager;
+        private readonly ICartService _cartService;
 
-        public AnimalsController(ShelterContext context, IAnimalService animalService, IWebHostEnvironment env)
+        public AnimalsController(ShelterContext context, IAnimalService animalService, IWebHostEnvironment env, UserManager<Users> userManager, ICartService cartService)
         {
             _context = context;
             _animalService = animalService;
             _env = env;
+            _userManager = userManager;
+            _cartService = cartService;
         }
 
         // GET: Animals
@@ -40,6 +45,12 @@ namespace projekt_.NET_schronisko.Controllers
             if (adopted.HasValue)
             {
                 animals = animals.Where(a => a.Status == (adopted.Value ? "adoptowany" : "nieadoptowany"));
+            }
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var cartItemCount = await _cartService.GetCartItemCount(user.Id);
+                ViewData["CartItemCount"] = cartItemCount;
             }
 
             return View(await animals.ToListAsync());
