@@ -13,6 +13,8 @@ using projekt_.NET_schronisko.Models;
 using projekt_.NET_schronisko.Services;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Identity;
+using System.Text.Json;
+
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -34,35 +36,36 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index(decimal? minPrice, decimal? maxPrice, string category)
+        public async Task<IActionResult> Index()
         {
-            var products = _context.Product
-                       .Include(p => p.Images)
-                       .AsQueryable();
+            // ustawianie cartItemCount
+            int cartCount = 0;
 
-            if (minPrice.HasValue)
+            if (User.Identity.IsAuthenticated)
             {
-                products = products.Where(p => p.Price >= minPrice.Value);
+                var user = await _userManager.GetUserAsync(User);
+                var cart = await _context.Carts
+                    .Include(c => c.Items)
+                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
+                cartCount = cart?.Items.Sum(i => i.Quantity) ?? 0;
+            }
+            else
+            {
+                var sessionCart = HttpContext.Session.GetString("Cart");
+                if (!string.IsNullOrEmpty(sessionCart))
+                {
+                    var cartData = JsonSerializer.Deserialize<Dictionary<int, int>>(sessionCart);
+                    cartCount = cartData?.Values.Sum() ?? 0;
+                }
             }
 
-            if (maxPrice.HasValue)
-            {
-                products = products.Where(p => p.Price <= maxPrice.Value);
-            }
+            ViewData["CartItemCount"] = cartCount;
 
-            if (!string.IsNullOrEmpty(category))
-            {
-                products = products.Where(p => p.Category == category);
-            }
-            var user = await _userManager.GetUserAsync(User);
-            if (user != null)
-            {
-                var cartItemCount = await _cartService.GetCartItemCount(user.Id);
-                ViewData["CartItemCount"] = cartItemCount;
-            }
-
-            return View(await products.ToListAsync());
+            // reszta logiki kontrolera
+            var products = await _context.Product.Include(p => p.Images).ToListAsync();
+            return View(products);
         }
+
 
         // GET: Products/Details/5
         public async Task<IActionResult> Details(int id)

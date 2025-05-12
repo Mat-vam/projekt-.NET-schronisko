@@ -4,6 +4,7 @@
 
 @{
     ViewData["Title"] = "Twój Koszyk";
+    bool isLoggedIn = User.Identity.IsAuthenticated;
 }
 
 <h2>Twój Koszyk</h2>
@@ -23,11 +24,13 @@
         <tbody id="cartItemsBody">
             @foreach (var item in Model.Items)
             {
-                <tr id="cartItem_@item.Id">
+                var dataId = isLoggedIn ? item.Id : item.ProductId;
+
+                <tr>
                     <td>@item.Product.Name</td>
                     <td>
                         <input type="number" class="form-control quantity"
-                               data-cart-item-id="@item.Id"
+                               data-cart-item-id="@dataId"
                                value="@item.Quantity"
                                min="1" />
                     </td>
@@ -35,7 +38,7 @@
                     <td class="total-price">@((item.Quantity * item.Product.Price).ToString("0.00")) zł</td>
                     <td>
                         <button class="btn btn-danger btn-sm remove-item-btn"
-                                data-cart-item-id="@item.Id">
+                                data-cart-item-id="@dataId">
                             Usuń
                         </button>
                     </td>
@@ -44,59 +47,71 @@
         </tbody>
     </table>
 
-    <h4>Łączna cena: <span id="totalPrice">@ViewBag.TotalPrice.ToString("0.00")</span> zł</h4>
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mt-4 gap-3">
+        <h4>Łączna cena: <span id="totalPrice">@ViewBag.TotalPrice.ToString("0.00")</span> zł</h4>
 
-    <!-- Przycisk do złożenia zamówienia -->
-    <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#orderModal">
-        Złóż zamówienie
-    </button>
+        @if (isLoggedIn)
+        {
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#orderModal">
+                Złóż zamówienie
+            </button>
+        }
+        else
+        {
+            <div class="d-flex gap-2">
+                <a href="/Account/Login" class="btn btn-warning">Zaloguj się</a>
+                <a href="/Account/Register" class="btn btn-outline-primary">Zarejestruj się</a>
+            </div>
+        }
+    </div>
 }
 else
 {
     <p id="emptyCartMessage">Twój koszyk jest pusty.</p>
 }
 
-<!-- Modal zamówienia -->
-<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <form id="orderForm" class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="orderModalLabel">Dane do zamówienia</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
-            </div>
-            <div class="modal-body">
-                @Html.AntiForgeryToken()
+@if (isLoggedIn)
+{
+    <!-- Modal zamówienia -->
+    <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="orderForm" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderModalLabel">Dane do zamówienia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
 
-                <div class="mb-2">
-                    <input class="form-control" name="FirstName" placeholder="Imię" required />
+                    <div class="mb-2">
+                        <input class="form-control" name="FirstName" placeholder="Imię" required />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" name="LastName" placeholder="Nazwisko" required />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" name="PostalCode" placeholder="Kod pocztowy" required />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" name="City" placeholder="Miasto" required />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" name="Address" placeholder="Adres" required />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" name="PhoneNumber" placeholder="Telefon" required />
+                    </div>
                 </div>
-                <div class="mb-2">
-                    <input class="form-control" name="LastName" placeholder="Nazwisko" required />
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Zatwierdź</button>
                 </div>
-                <div class="mb-2">
-                    <input class="form-control" name="PostalCode" placeholder="Kod pocztowy" required />
-                </div>
-                <div class="mb-2">
-                    <input class="form-control" name="City" placeholder="Miasto" required />
-                </div>
-                <div class="mb-2">
-                    <input class="form-control" name="Address" placeholder="Adres" required />
-                </div>
-                <div class="mb-2">
-                    <input class="form-control" name="PhoneNumber" placeholder="Telefon" required />
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-success">Zatwierdź</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
+}
 
-<!-- Skrypty JavaScript -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Usuwanie produktu
         document.querySelectorAll(".remove-item-btn").forEach(button => {
             button.addEventListener("click", function () {
                 const cartItemId = this.dataset.cartItemId;
@@ -113,7 +128,7 @@ else
                             return;
                         }
 
-                        const row = document.getElementById(`cartItem_${cartItemId}`);
+                        const row = document.querySelector(`[data-cart-item-id="${cartItemId}"]`)?.closest("tr");
                         if (row) row.remove();
 
                         document.getElementById("cartItemCount").innerText = data.cartItemCount;
@@ -122,14 +137,12 @@ else
                         if (data.cartItemCount === 0) {
                             document.getElementById("cartTable").remove();
                             document.getElementById("totalPrice")?.parentElement?.remove();
-                            const h2 = document.querySelector("h2");
-                            h2.insertAdjacentHTML("afterend", "<p id='emptyCartMessage'>Twój koszyk jest pusty.</p>");
+                            document.querySelector("h2").insertAdjacentHTML("afterend", "<p id='emptyCartMessage'>Twój koszyk jest pusty.</p>");
                         }
                     });
             });
         });
 
-        // Zmiana ilości
         document.querySelectorAll(".quantity").forEach(input => {
             input.addEventListener("change", function () {
                 const cartItemId = this.dataset.cartItemId;
@@ -141,13 +154,12 @@ else
                     body: `cartItemId=${cartItemId}&quantity=${quantity}`
                 })
                     .then(() => {
-                        location.reload(); // reload dla prostoty po aktualizacji
+                        location.reload();
                     });
             });
         });
 
-        // Wysyłka formularza zamówienia
-        document.getElementById("orderForm").addEventListener("submit", function (e) {
+        document.getElementById("orderForm")?.addEventListener("submit", function (e) {
             e.preventDefault();
             const formData = new FormData(this);
             const data = Object.fromEntries(formData.entries());
@@ -161,14 +173,10 @@ else
                 body: JSON.stringify(data)
             })
                 .then(async res => {
-                    if (!res.ok) {
-                        const text = await res.text();
-                        throw new Error(text);
-                    }
+                    if (!res.ok) throw new Error(await res.text());
                     return res.json();
                 })
                 .then(res => {
-                    console.log("ODP:", res);
                     if (res.success) {
                         const modal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
                         modal.hide();
@@ -191,40 +199,3 @@ else
         });
     });
 </script>
-
-
-@section Scripts {
-    <script>
-        document.getElementById('orderForm')?.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const form = e.target;
-            const data = {
-                FirstName: form.FirstName.value,
-                LastName: form.LastName.value,
-                PostalCode: form.PostalCode.value,
-                City: form.City.value,  
-                Address: form.Address.value,
-                PhoneNumber: form.PhoneNumber.value
-            };
-
-            const response = await fetch('/Cart/PlaceOrder', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-            const alertBox = document.getElementById('orderResult');
-            alertBox.classList.remove('d-none', 'alert-success', 'alert-danger');
-            alertBox.classList.add(result.success ? 'alert-success' : 'alert-danger');
-            alertBox.innerText = result.message;
-
-            if (result.success) {
-                setTimeout(() => location.reload(), 2000);
-            }
-        });
-    </script>
-}

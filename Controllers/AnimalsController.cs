@@ -12,6 +12,8 @@ using projekt_.NET_schronisko.Interfaces;
 using projekt_.NET_schronisko.Models;
 using projekt_.NET_schronisko.Repository;
 using projekt_.NET_schronisko.Services;
+using System.Text.Json;
+
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -33,28 +35,37 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
         // GET: Animals
-        public async Task<IActionResult> Index(string species, bool? adopted)
+        public async Task<IActionResult> Index()
         {
-            var animals = _context.Animal.Include(p=>p.Images).AsQueryable();
+            // ustawianie cartItemCount
+            int cartCount = 0;
 
-            if (!string.IsNullOrEmpty(species))
+            if (User.Identity.IsAuthenticated)
             {
-                animals = animals.Where(a => a.Species.ToLower() == species.ToLower());
+                var user = await _userManager.GetUserAsync(User);
+                var cart = await _context.Carts
+                    .Include(c => c.Items)
+                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
+                cartCount = cart?.Items.Sum(i => i.Quantity) ?? 0;
+            }
+            else
+            {
+                var sessionCart = HttpContext.Session.GetString("Cart");
+                if (!string.IsNullOrEmpty(sessionCart))
+                {
+                    var cartData = JsonSerializer.Deserialize<Dictionary<int, int>>(sessionCart);
+                    cartCount = cartData?.Values.Sum() ?? 0;
+                }
             }
 
-            if (adopted.HasValue)
-            {
-                animals = animals.Where(a => a.Status == (adopted.Value ? "adoptowany" : "nieadoptowany"));
-            }
-            var user = await _userManager.GetUserAsync(User);
-            if (user != null)
-            {
-                var cartItemCount = await _cartService.GetCartItemCount(user.Id);
-                ViewData["CartItemCount"] = cartItemCount;
-            }
+            ViewData["CartItemCount"] = cartCount;
 
-            return View(await animals.ToListAsync());
+            // reszta logiki kontrolera
+            var animals = await _context.Animal.Include(a => a.Images).ToListAsync();
+            return View(animals);
+
         }
+
 
         // GET: Animals/Details/5
         public async Task<IActionResult> Details(int? id)

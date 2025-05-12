@@ -2,13 +2,18 @@
 
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<Users> UserManager
+@inject SignInManager<Users> SignInManager
 
 @{
     ViewData["Title"] = "Zwierzaki";
 
-    var user = await UserManager.GetUserAsync(User);
-    var roles = await UserManager.GetRolesAsync(user);
-    bool isWorker = roles.Contains("Pracownik");
+    bool isWorker = false;
+    if (SignInManager.IsSignedIn(User))
+    {
+        var user = await UserManager.GetUserAsync(User);
+        var roles = await UserManager.GetRolesAsync(user);
+        isWorker = roles.Contains("Pracownik");
+    }
 }
 
 <h1 class="mb-4">Zwierzaki</h1>

@@ -4,6 +4,11 @@ using projekt_.NET_schronisko.Models;
 using projekt_.NET_schronisko.Services;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Text.Json;
+using projekt_.NET_schronisko.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -12,28 +17,44 @@ namespace projekt_.NET_schronisko.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly ICartService _cartService;
         private readonly UserManager<Users> _userManager;
+        private readonly ShelterContext _context;
 
-        public HomeController(ILogger<HomeController> logger, ICartService cartService, UserManager<Users> userManager)
+        public HomeController(ILogger<HomeController> logger, ICartService cartService, UserManager<Users> userManager, ShelterContext context)
         {
             _logger = logger;
             _cartService = cartService;
             _userManager = userManager;
+            _context = context;
         }
 
         // G³ówna strona - Index
         public async Task<IActionResult> Index()
         {
-            var user = await _userManager.GetUserAsync(User); 
-            
+            var user = await _userManager.GetUserAsync(User);
+
             if (User.Identity.IsAuthenticated)
             {
                 ViewBag.FullName = user?.FullName;
+
+                if (user != null)
+                {
+                    var cartItemCount = await _cartService.GetCartItemCount(user.Id);
+                    ViewData["CartItemCount"] = cartItemCount;
+                }
             }
-            
-            if (user != null)
+            else
             {
-                var cartItemCount = await _cartService.GetCartItemCount(user.Id);
-                ViewData["CartItemCount"] = cartItemCount;
+                // Niezalogowany – licz koszyk z sesji
+                var sessionCart = HttpContext.Session.GetString("Cart");
+                if (!string.IsNullOrEmpty(sessionCart))
+                {
+                    var cartData = JsonSerializer.Deserialize<Dictionary<int, int>>(sessionCart);
+                    ViewData["CartItemCount"] = cartData?.Values.Sum() ?? 0;
+                }
+                else
+                {
+                    ViewData["CartItemCount"] = 0;
+                }
             }
 
             return View();

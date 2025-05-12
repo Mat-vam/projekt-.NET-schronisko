@@ -7,7 +7,6 @@ using projekt_.NET_schronisko.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 
-
 public class Program
 {
     public static async Task Main(string[] args)
@@ -16,7 +15,7 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
-        builder.Services.AddScoped<ICartService, CartService>(); // Rejestracja serwisu koszyka
+        builder.Services.AddScoped<ICartService, CartService>();
         builder.Services.AddScoped<IProductService, ProductService>();
         builder.Services.AddScoped<IAnimalService, AnimalService>();
         builder.Services.AddDbContext<ShelterContext>(options =>
@@ -27,11 +26,11 @@ public class Program
         // Dodaj us³ugi sesji
         builder.Services.AddSession(options =>
         {
-            options.IdleTimeout = TimeSpan.FromMinutes(30); // czas trwania sesji
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;
-        }); 
-        
+        });
+
         builder.Services.AddIdentity<Users, IdentityRole>(options =>
         {
             options.Password.RequireNonAlphanumeric = false;
@@ -39,13 +38,13 @@ public class Program
             options.Password.RequireUppercase = false;
             options.Password.RequireLowercase = false;
             options.User.RequireUniqueEmail = true;
-            options.SignIn.RequireConfirmedAccount = false;    //Account oraz Email powinno byæ na True w ostatniej wersji !!!
+            options.SignIn.RequireConfirmedAccount = false;
             options.SignIn.RequireConfirmedEmail = false;
             options.SignIn.RequireConfirmedPhoneNumber = false;
         })
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<ShelterContext>()
-                .AddDefaultTokenProviders();
+        .AddRoles<IdentityRole>()
+        .AddEntityFrameworkStores<ShelterContext>()
+        .AddDefaultTokenProviders();
 
         builder.Services.AddAuthentication(options =>
         {
@@ -68,7 +67,7 @@ public class Program
 
                 return Task.CompletedTask;
             };
-            
+
             options.CallbackPath = "/signin-google";
         });
 
@@ -86,6 +85,8 @@ public class Program
 
         app.UseRouting();
 
+        app.UseSession(); // ?? WA¯NE! Teraz sesja dzia³a!
+
         app.UseAuthentication();
         app.UseAuthorization();
 
@@ -93,7 +94,7 @@ public class Program
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
-        // Tworzenie ról (jeœli nie istniej¹)
+        // Tworzenie ról
         using (var scope = app.Services.CreateScope())
         {
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -133,7 +134,7 @@ public class Program
                 {
                     foreach (var error in result.Errors)
                     {
-                        Console.WriteLine($"Blad tworzenia pracownika: {error.Description}");
+                        Console.WriteLine($"B³¹d tworzenia pracownika: {error.Description}");
                     }
                 }
             }
@@ -158,13 +159,13 @@ public class Program
                 var result = await userManager.CreateAsync(user, password);
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(user, "Klient"); // Automatyczne przypisanie roli "Klient"
+                    await userManager.AddToRoleAsync(user, "Klient");
                 }
                 else
                 {
                     foreach (var error in result.Errors)
                     {
-                        Console.WriteLine($"Blad tworzenia klienta: {error.Description}");
+                        Console.WriteLine($"B³¹d tworzenia klienta: {error.Description}");
                     }
                 }
             }

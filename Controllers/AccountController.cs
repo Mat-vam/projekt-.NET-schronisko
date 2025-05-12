@@ -7,20 +7,19 @@ using projekt_.NET_schronisko.ViewModels;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Google;
 
-
 namespace projekt_.NET_schronisko.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly SignInManager<Users> signInManager;
-        private readonly UserManager<Users> userManager;
-        private readonly RoleManager<IdentityRole> roleManager;
+        private readonly SignInManager<Users> _signInManager;
+        private readonly UserManager<Users> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public AccountController(SignInManager<Users> signInManager, UserManager<Users> userManager, RoleManager<IdentityRole> roleManager)
         {
-            this.signInManager = signInManager;
-            this.userManager = userManager;
-            this.roleManager = roleManager;  // Dodajemy RoleManager
+            _signInManager = signInManager;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         public IActionResult Login()
@@ -33,7 +32,7 @@ namespace projekt_.NET_schronisko.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
                     return RedirectToAction("Index", "Home");
@@ -64,17 +63,15 @@ namespace projekt_.NET_schronisko.Controllers
                     UserName = model.Email,
                 };
 
-                var result = await userManager.CreateAsync(users, model.Password);
+                var result = await _userManager.CreateAsync(users, model.Password);
                 if (result.Succeeded)
                 {
-                    // Przypisanie roli "Klient"
-                    if (!await roleManager.RoleExistsAsync("Klient"))
+                    if (!await _roleManager.RoleExistsAsync("Klient"))
                     {
-                        // Jeśli rola "Klient" nie istnieje, tworzymy ją
-                        await roleManager.CreateAsync(new IdentityRole("Klient"));
+                        await _roleManager.CreateAsync(new IdentityRole("Klient"));
                     }
 
-                    await userManager.AddToRoleAsync(users, "Klient"); // Przypisanie roli "Klient" do nowego użytkownika
+                    await _userManager.AddToRoleAsync(users, "Klient");
 
                     return RedirectToAction("Login", "Account");
                 }
@@ -100,7 +97,7 @@ namespace projekt_.NET_schronisko.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await userManager.FindByNameAsync(model.Email);
+                var user = await _userManager.FindByNameAsync(model.Email);
                 if (user == null)
                 {
                     ModelState.AddModelError("", "Podano niepoprawny Email");
@@ -128,13 +125,13 @@ namespace projekt_.NET_schronisko.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await userManager.FindByNameAsync(model.Email);
+                var user = await _userManager.FindByNameAsync(model.Email);
                 if (user != null)
                 {
-                    var result = await userManager.RemovePasswordAsync(user);
+                    var result = await _userManager.RemovePasswordAsync(user);
                     if (result.Succeeded)
                     {
-                        result = await userManager.AddPasswordAsync(user, model.NewPassword);
+                        result = await _userManager.AddPasswordAsync(user, model.NewPassword);
                         return RedirectToAction("Login", "Account");
                     }
                     else
@@ -161,7 +158,11 @@ namespace projekt_.NET_schronisko.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            await signInManager.SignOutAsync();
+            await _signInManager.SignOutAsync();
+
+            // wyczyść koszyk z sesji po wylogowaniu
+            HttpContext.Session.Remove("Cart");
+
             return RedirectToAction("Index", "Home");
         }
 
@@ -187,7 +188,7 @@ namespace projekt_.NET_schronisko.Controllers
             if (email == null || !email.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase))
                 return RedirectToAction("Login");
 
-            var user = await userManager.FindByEmailAsync(email);
+            var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
                 user = new Users
@@ -196,11 +197,11 @@ namespace projekt_.NET_schronisko.Controllers
                     Email = email,
                     FullName = name
                 };
-                await userManager.CreateAsync(user);
-                await userManager.AddToRoleAsync(user, "Klient");
+                await _userManager.CreateAsync(user);
+                await _userManager.AddToRoleAsync(user, "Klient");
             }
 
-            await signInManager.SignInAsync(user, isPersistent: false);
+            await _signInManager.SignInAsync(user, isPersistent: false);
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             return LocalRedirect(returnUrl);

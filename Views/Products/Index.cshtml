@@ -2,29 +2,33 @@
 
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<Users> UserManager
+@inject SignInManager<Users> SignInManager
 
 @{
     ViewData["Title"] = "Produkty";
 
-    var user = await UserManager.GetUserAsync(User);
-    var roles = await UserManager.GetRolesAsync(user);
-    bool isClient = roles.Contains("Klient");
-    bool isEmployee = roles.Contains("Pracownik");
+    bool isClient = false;
+    bool isEmployee = false;
+
+    if (SignInManager.IsSignedIn(User))
+    {
+        var user = await UserManager.GetUserAsync(User);
+        var roles = await UserManager.GetRolesAsync(user);
+        isClient = roles.Contains("Klient");
+        isEmployee = roles.Contains("Pracownik");
+    }
 }
 
 <div class="container">
     <h1 class="my-4">Produkty</h1>
 
-    <!-- Ukryty formularz z tokenem CSRF -->
     <form id="csrfTokenForm">@Html.AntiForgeryToken()</form>
 
-    <!-- Przycisk do dodawania nowego produktu tylko dla pracowników -->
     @if (isEmployee)
     {
         <a asp-action="Create" class="btn btn-success mb-3">Dodaj nowy produkt</a>
     }
 
-    <!-- Sekcja produktów - karty -->
     <div class="row">
         @foreach (var item in Model)
         {
@@ -38,7 +42,7 @@
                             <strong>Kategoria:</strong> @item.Category
                         </p>
 
-                        @if (isClient)
+                        @if (isClient || !User.Identity.IsAuthenticated)
                         {
                             <div class="d-flex justify-content-between">
                                 <input type="number" name="quantity_@item.ID" class="form-control quantity" value="1" min="1" data-product-id="@item.ID" style="width: 80px;" />
@@ -61,7 +65,6 @@
         }
     </div>
 
-    <!-- JavaScript do obsługi koszyka -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll(".add-to-cart-btn").forEach(button => {
@@ -89,13 +92,11 @@
                             return response.json();
                         })
                         .then(data => {
-                            // Zaktualizuj licznik pod tabelką
                             const cartCounter = document.getElementById("cartItemCount");
                             if (cartCounter) {
                                 cartCounter.innerText = `${data.cartItemCount}`;
                             }
 
-                            // Zaktualizuj licznik w nagłówku (przy koszyku)
                             const headerCartCounter = document.getElementById("cart-count");
                             if (headerCartCounter) {
                                 headerCartCounter.innerText = `${data.cartItemCount}`;
