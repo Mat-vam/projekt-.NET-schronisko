@@ -2,16 +2,20 @@
 using Microsoft.EntityFrameworkCore;
 using projekt_.NET_schronisko.Data;
 using projekt_.NET_schronisko.ViewModels;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace projekt_.NET_schronisko.Services
 {
     public class CartService : ICartService
     {
         private readonly ShelterContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CartService(ShelterContext context)
+        public CartService(ShelterContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         // Zwraca liczbę produktów w koszyku użytkownika
@@ -59,8 +63,18 @@ namespace projekt_.NET_schronisko.Services
             await _context.SaveChangesAsync();
         }
 
+        private string? GetCurrentUserEmail()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email);
+        }
         public async Task<bool> PlaceOrderAsync(string userId, OrderFormViewModel model)
         {
+            var email = GetCurrentUserEmail();
+            if (email == null)
+            {
+                return false;
+            }
+
             var cart = await _context.Carts
                 .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
@@ -71,8 +85,9 @@ namespace projekt_.NET_schronisko.Services
 
             var order = new Orders
             {
-                CustomerName = $"{model.FirstName} {model.LastName}",
+                CustomerName = email,
                 DeliveryAddress = $"{model.PostalCode}, {model.City}, {model.Address}",
+                PhoneNumber = model.PhoneNumber,
                 ProduktyZamowienia = cart.Items
                     .GroupBy(i => i.ProductId)
                     .Select(g => new OrderProduct
@@ -89,6 +104,15 @@ namespace projekt_.NET_schronisko.Services
             await _context.SaveChangesAsync();
 
             return true;
+        }
+        public async Task<List<Orders>> GetOrdersByEmailAsync(string email)
+        {
+            return await _context.Orders
+                .Include(o => o.ProduktyZamowienia)
+                    .ThenInclude(op => op.Product)
+                .Where(o => o.CustomerName == email)
+                .OrderByDescending(o => o.DataZamowienia)
+                .ToListAsync();
         }
     }
 }

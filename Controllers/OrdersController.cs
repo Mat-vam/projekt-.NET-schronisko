@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using projekt_.NET_schronisko.Models;
 using Microsoft.AspNetCore.Authorization;
 using projekt_.NET_schronisko.Data;
+using projekt_.NET_schronisko.Services;
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -10,10 +11,12 @@ namespace projekt_.NET_schronisko.Controllers
     public class OrdersController : Controller
     {
         private readonly ShelterContext _context;
+        private readonly ICartService _cartService;
 
-        public OrdersController(ShelterContext context)
+        public OrdersController(ShelterContext context, ICartService cartService)
         {
             _context = context;
+            _cartService = cartService;
         }
 
         // GET: Orders/Index

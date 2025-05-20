@@ -9,6 +9,7 @@ using projekt_.NET_schronisko.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace projekt_.NET_schronisko.Controllers
 {
@@ -64,6 +65,17 @@ namespace projekt_.NET_schronisko.Controllers
         public IActionResult Privacy()
         {
             return View();
+        }
+        [Authorize(Roles = "Klient")]
+        public async Task<IActionResult> History()
+        {
+            var email = User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(email))
+                return RedirectToAction("Login", "Account");
+
+            var orders = await _cartService.GetOrdersByEmailAsync(email);
+            return View(orders);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -9,6 +9,7 @@
         public ICollection<OrderProduct> ProduktyZamowienia { get; set; }
         public string CustomerName { get; set; }
         public string DeliveryAddress { get; set; }
+        public string? PhoneNumber { get; set; }
         public decimal TotalAmount
         {
             get

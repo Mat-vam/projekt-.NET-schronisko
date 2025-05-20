@@ -18,6 +18,7 @@ public class Program
         builder.Services.AddScoped<ICartService, CartService>();
         builder.Services.AddScoped<IProductService, ProductService>();
         builder.Services.AddScoped<IAnimalService, AnimalService>();
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddDbContext<ShelterContext>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
