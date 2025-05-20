@@ -1,0 +1,39 @@
+﻿@model List<projekt_.NET_schronisko.Models.Orders>
+
+<h2>Twoje zamówienia</h2>
+
+@if (!Model.Any())
+{
+    <p>Nie masz jeszcze żadnych zamówień.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Status</th>
+                <th>Suma</th>
+                <th>Produkty</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>@order.DataZamowienia.ToString("g")</td>
+                    <td>@order.Status</td>
+                    <td>@order.TotalAmount zł</td>
+                    <td>
+                        <ul>
+                            @foreach (var item in order.ProduktyZamowienia)
+                            {
+                                <li>@($"{item.Product.Name} (x{@item.Ilosc})")</li>
+                            }
+                        </ul>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

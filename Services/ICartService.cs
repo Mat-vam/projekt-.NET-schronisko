@@ -1,4 +1,5 @@
-﻿using projekt_.NET_schronisko.ViewModels;
+﻿using projekt_.NET_schronisko.Models;
+using projekt_.NET_schronisko.ViewModels;
 
 namespace projekt_.NET_schronisko.Services
 {
@@ -8,5 +9,6 @@ namespace projekt_.NET_schronisko.Services
         Task AddToCart(string userId, int productId, int quantity); // Metoda do dodania przedmiotu do koszyka
 
         Task<bool> PlaceOrderAsync(string userId, OrderFormViewModel model);
+        Task<List<Orders>> GetOrdersByEmailAsync(string email);
     }
 }

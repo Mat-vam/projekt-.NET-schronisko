@@ -43,6 +43,12 @@
                                 <a class="nav-link" asp-controller="Admin" asp-action="Index">Panel Pracownika</a>
                             </li>
                         }
+                        @if (User.Identity.IsAuthenticated && User.IsInRole("Klient"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="History">Moje zamówienia</a>
+                            </li>
+                        }
                     </ul>
 
                     <ul class="navbar-nav">
