@@ -96,6 +96,28 @@ namespace projekt_.NET_schronisko.Controllers
         // GET: Animals/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            int cartCount = 0;
+
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var cart = await _context.Carts
+                    .Include(c => c.Items)
+                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
+                cartCount = cart?.Items.Sum(i => i.Quantity) ?? 0;
+            }
+            else
+            {
+                var sessionCart = HttpContext.Session.GetString("Cart");
+                if (!string.IsNullOrEmpty(sessionCart))
+                {
+                    var cartData = JsonSerializer.Deserialize<Dictionary<int, int>>(sessionCart);
+                    cartCount = cartData?.Values.Sum() ?? 0;
+                }
+            }
+
+            ViewData["CartItemCount"] = cartCount; 
+            
             if (id == null)
             {
                 return NotFound();
