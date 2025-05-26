@@ -36,7 +36,7 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string category, string sortOrder)
         {
             // ustawianie cartItemCount
             int cartCount = 0;
@@ -61,10 +61,26 @@ namespace projekt_.NET_schronisko.Controllers
 
             ViewData["CartItemCount"] = cartCount;
 
-            // reszta logiki kontrolera
-            var products = await _context.Product.Include(p => p.Images).ToListAsync();
-            return View(products);
+            // filtrowanie i sortowanie produktów
+            var products = _context.Product.Include(p => p.Images).AsQueryable();
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                products = products.Where(p => p.Category == category);
+            }
+
+            if (sortOrder == "asc")
+            {
+                products = products.OrderBy(p => p.Price);
+            }
+            else if (sortOrder == "desc")
+            {
+                products = products.OrderByDescending(p => p.Price);
+            }
+
+            return View(await products.ToListAsync());
         }
+
 
 
         // GET: Products/Details/5
@@ -113,10 +129,6 @@ namespace projekt_.NET_schronisko.Controllers
 
             return View(productRepo);
         }
-
-
-
-
 
 
         [Authorize(Roles = "Pracownik")]
