@@ -4,11 +4,8 @@ namespace projekt_.NET_schronisko.ViewModels
 {
     public class OrderFormViewModel
     {
-        [Required]
-        public string FirstName { get; set; }
-
-        [Required]
-        public string LastName { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
 
         [Required]
         public string PostalCode { get; set; }

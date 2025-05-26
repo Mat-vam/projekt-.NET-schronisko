@@ -84,10 +84,10 @@ else
                     @Html.AntiForgeryToken()
 
                     <div class="mb-2">
-                        <input class="form-control" name="FirstName" placeholder="Imię" required />
+                        <input class="form-control" name="FullName" value="@ViewBag.FullName" readonly />
                     </div>
                     <div class="mb-2">
-                        <input class="form-control" name="LastName" placeholder="Nazwisko" required />
+                        <input class="form-control" name="Email" value="@ViewBag.UserEmail" readonly />
                     </div>
                     <div class="mb-2">
                         <input class="form-control" name="PostalCode" placeholder="Kod pocztowy" required />

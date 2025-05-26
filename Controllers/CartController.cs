@@ -36,6 +36,8 @@ namespace projekt_.NET_schronisko.Controllers
             if (User.Identity.IsAuthenticated)
             {
                 var user = await _userManager.GetUserAsync(User);
+                ViewBag.FullName = user.FullName;
+                ViewBag.UserEmail = user.Email;
                 var cart = await _context.Carts
                     .Include(c => c.Items)
                     .ThenInclude(i => i.Product)
@@ -202,7 +204,7 @@ namespace projekt_.NET_schronisko.Controllers
             }
             else
             {
-                // 👤 niezalogowany – sesja
+                // niezalogowany – sesja
                 var sessionCart = HttpContext.Session.GetString("Cart");
                 var cart = !string.IsNullOrEmpty(sessionCart)
                     ? JsonSerializer.Deserialize<Dictionary<int, int>>(sessionCart)
@@ -260,7 +262,7 @@ namespace projekt_.NET_schronisko.Controllers
             }
             else
             {
-                // 👤 niezalogowany – operuj na sesji
+                // niezalogowany – operuj na sesji
                 var sessionCart = HttpContext.Session.GetString("Cart");
                 if (!string.IsNullOrEmpty(sessionCart))
                 {
@@ -295,6 +297,9 @@ namespace projekt_.NET_schronisko.Controllers
                 return BadRequest(new { success = false, message = "Błędne dane." });
 
             var user = await _userManager.GetUserAsync(User);
+            model.FullName = user.FullName;
+            model.Email = user.Email;
+
             var success = await _cartService.PlaceOrderAsync(user.Id, model);
 
             return Json(new
