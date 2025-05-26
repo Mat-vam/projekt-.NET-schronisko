@@ -135,7 +135,9 @@ namespace projekt_.NET_schronisko.Controllers
                 Name = product.Name,
                 Price = product.Price,
                 Category = product.Category,
-                Images = new List<IFormFile>() 
+                Images = new List<IFormFile>(),
+                ExistingImages = product.Images?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
+
             };
 
             var categories = new List<string> { "Zabawka", "Karma", "Akcesoria" };
@@ -162,7 +164,35 @@ namespace projekt_.NET_schronisko.Controllers
             {
                 try
                 {
+                    var product = await _context.Product.Include(p => p.Images)
+                                                        .FirstOrDefaultAsync(p => p.ID == productRepo.ID);
+                    if (product == null)
+                    {
+                        return NotFound();
+                    }
+
+                    if (productRepo.ImagesToDelete != null && productRepo.ImagesToDelete.Any())
+                    {
+                        var imagesToRemove = product.Images
+                            .Where(img => productRepo.ImagesToDelete.Contains(img.ImageUrl))
+                            .ToList();
+
+                        foreach (var image in imagesToRemove)
+                        {
+                            var fullPath = Path.Combine(_env.WebRootPath, image.ImageUrl.TrimStart('/'));
+                            if (System.IO.File.Exists(fullPath))
+                            {
+                                System.IO.File.Delete(fullPath);
+                            }
+
+                            _context.ProductImages.Remove(image);
+                        }
+
+                        await _context.SaveChangesAsync();
+                    }
+
                     await _productService.UpdateProductAsync(productRepo);
+
                 }
                 catch (Exception)
                 {
@@ -183,6 +213,8 @@ namespace projekt_.NET_schronisko.Controllers
 
             return View(productRepo);
         }
+
+
 
 
         // GET: Products/Delete/5
