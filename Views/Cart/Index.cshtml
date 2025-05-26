@@ -178,18 +178,7 @@ else
                 })
                 .then(res => {
                     if (res.success) {
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
-                        modal.hide();
-                        document.querySelector("h2").innerText = "Zamówienie zostało złożone!";
-                        document.getElementById("cartTable")?.remove();
-                        document.getElementById("totalPrice")?.parentElement?.remove();
-                        document.getElementById("orderForm").remove();
-
-                        const button = document.createElement("a");
-                        button.href = "/";
-                        button.className = "btn btn-primary mt-3";
-                        button.innerText = "Powrót na stronę główną";
-                        document.querySelector("h2").after(button);
+                        window.location.href = "/Products?orderSuccess=true";
                     }
                 })
                 .catch(err => {
