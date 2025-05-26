@@ -37,3 +37,31 @@ else
         </tbody>
     </table>
 }
+
+<form method="get" class="row g-3 mb-4 align-items-end">
+    <div class="col-md-4">
+        <label for="sortBy" class="form-label">Sortuj według:</label>
+        <select name="sortBy" class="form-select">
+            <option value="">Wybierz...</option>
+            <option value="date_asc">Data (od najstarszych)</option>
+            <option value="date_desc">Data (od najnowszych)</option>
+            <option value="total_asc">Suma (rosnąco)</option>
+            <option value="total_desc">Suma (malejąco)</option>
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <label for="statusFilter" class="form-label">Status zamówienia:</label>
+        <select name="statusFilter" class="form-select">
+            <option value="">Wszystkie</option>
+            <option value="Nowe">Nowe</option>
+            <option value="Realizowane">Realizowane</option>
+            <option value="Zrealizowane">Zrealizowane</option>
+            <option value="Anulowane">Anulowane</option>
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-primary w-100">Filtruj</button>
+    </div>
+</form>

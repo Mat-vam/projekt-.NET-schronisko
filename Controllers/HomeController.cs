@@ -28,9 +28,8 @@ namespace projekt_.NET_schronisko.Controllers
             _context = context;
         }
 
-        // G³ówna strona - Index
         public async Task<IActionResult> Index()
-        {            
+        {
             var user = await _userManager.GetUserAsync(User);
 
             if (User.Identity.IsAuthenticated)
@@ -45,7 +44,6 @@ namespace projekt_.NET_schronisko.Controllers
             }
             else
             {
-                // Niezalogowany – licz koszyk z sesji
                 var sessionCart = HttpContext.Session.GetString("Cart");
                 if (!string.IsNullOrEmpty(sessionCart))
                 {
@@ -62,7 +60,7 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
         [Authorize(Roles = "Klient")]
-        public async Task<IActionResult> History()
+        public async Task<IActionResult> History(string sortBy, string statusFilter)
         {
             int cartCount = 0;
 
@@ -84,12 +82,40 @@ namespace projekt_.NET_schronisko.Controllers
                 }
             }
 
-            ViewData["CartItemCount"] = cartCount; var email = User.Identity?.Name;
+            ViewData["CartItemCount"] = cartCount;
 
+            var email = User.Identity?.Name;
             if (string.IsNullOrEmpty(email))
                 return RedirectToAction("Login", "Account");
 
             var orders = await _cartService.GetOrdersByEmailAsync(email);
+
+            // Filtrowanie po statusie
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                orders = orders.Where(o => o.Status == statusFilter).ToList();
+            }
+
+            // Sortowanie
+            switch (sortBy)
+            {
+                case "date_asc":
+                    orders = orders.OrderBy(o => o.DataZamowienia).ToList();
+                    break;
+                case "date_desc":
+                    orders = orders.OrderByDescending(o => o.DataZamowienia).ToList();
+                    break;
+                case "total_asc":
+                    orders = orders.OrderBy(o => o.TotalAmount).ToList();
+                    break;
+                case "total_desc":
+                    orders = orders.OrderByDescending(o => o.TotalAmount).ToList();
+                    break;
+                default:
+                    orders = orders.OrderByDescending(o => o.DataZamowienia).ToList();
+                    break;
+            }
+
             return View(orders);
         }
 
