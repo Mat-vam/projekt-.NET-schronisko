@@ -61,15 +61,30 @@ namespace projekt_.NET_schronisko.Controllers
             return View();
         }
 
-        // Strona Prywatnoœci
-        public IActionResult Privacy()
-        {
-            return View();
-        }
         [Authorize(Roles = "Klient")]
         public async Task<IActionResult> History()
         {
-            var email = User.Identity?.Name;
+            int cartCount = 0;
+
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var cart = await _context.Carts
+                    .Include(c => c.Items)
+                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
+                cartCount = cart?.Items.Sum(i => i.Quantity) ?? 0;
+            }
+            else
+            {
+                var sessionCart = HttpContext.Session.GetString("Cart");
+                if (!string.IsNullOrEmpty(sessionCart))
+                {
+                    var cartData = JsonSerializer.Deserialize<Dictionary<int, int>>(sessionCart);
+                    cartCount = cartData?.Values.Sum() ?? 0;
+                }
+            }
+
+            ViewData["CartItemCount"] = cartCount; var email = User.Identity?.Name;
 
             if (string.IsNullOrEmpty(email))
                 return RedirectToAction("Login", "Account");
