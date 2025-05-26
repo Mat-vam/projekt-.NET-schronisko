@@ -15,7 +15,7 @@
         isWorker = roles.Contains("Pracownik");
     }
 }
-
+<div class="container">
 <h1 class="mb-4">Zwierzaki</h1>
 
 @if (isWorker)
@@ -59,6 +59,7 @@
         </div>
     }
 </div>
+</div>
 
 <hr class="my-5" />
 
@@ -68,8 +69,10 @@
         <label for="species" class="form-label">Gatunek:</label>
         <select name="species" class="form-select">
             <option value="">Wszystkie</option>
-            <option value="pies">Pies</option>
-            <option value="kot">Kot</option>
+            @foreach (var sp in (List<string>)ViewBag.SpeciesList)
+            {
+                <option value="@sp">@sp</option>
+            }
         </select>
     </div>
 
@@ -78,7 +81,7 @@
         <select name="adopted" class="form-select">
             <option value="">Wszystkie</option>
             <option value="true">Adoptowany</option>
-            <option value="false">Nieadoptowany</option>
+            <option value="false">Niezadoptowany</option>
         </select>
     </div>
 

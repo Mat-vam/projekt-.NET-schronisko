@@ -13,6 +13,7 @@ using projekt_.NET_schronisko.Models;
 using projekt_.NET_schronisko.Repository;
 using projekt_.NET_schronisko.Services;
 using System.Text.Json;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 
 namespace projekt_.NET_schronisko.Controllers
@@ -35,7 +36,7 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
         // GET: Animals
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string species, string adopted)
         {
             // ustawianie cartItemCount
             int cartCount = 0;
@@ -60,8 +61,33 @@ namespace projekt_.NET_schronisko.Controllers
 
             ViewData["CartItemCount"] = cartCount;
 
+            var animalsQuery = _context.Animal.Include(a => a.Images).AsQueryable();
+
+            if (!string.IsNullOrEmpty(species))
+            {
+                animalsQuery = animalsQuery.Where(a => a.Species.ToLower() == species.ToLower());
+            }
+            if (!string.IsNullOrEmpty(adopted))
+            {
+
+                if (adopted.ToLower() == "true")
+                {
+                    animalsQuery = animalsQuery.Where(a => a.Status == "Adoptowany");
+                }
+                else if (adopted.ToLower() == "false")
+                {
+                    animalsQuery = animalsQuery.Where(a => a.Status != "Adoptowany");
+                }
+            }
+            var speciesList = await _context.Animal
+                .Select(a => a.Species)
+                .Distinct()
+                .ToListAsync();
+
+            ViewBag.SpeciesList = speciesList;
+
             // reszta logiki kontrolera
-            var animals = await _context.Animal.Include(a => a.Images).ToListAsync();
+            var animals = await animalsQuery.ToListAsync();
             return View(animals);
 
         }
@@ -126,7 +152,8 @@ namespace projekt_.NET_schronisko.Controllers
                 Species = animal.Species,
                 Bio = animal.Bio,
                 Status = animal.Status,
-                Images = new List<IFormFile>()
+                Images = new List<IFormFile>(),
+                ExistingImages = animal.Images?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
             };
 
             return View(animalRepo);
@@ -149,7 +176,35 @@ namespace projekt_.NET_schronisko.Controllers
             {
                 try
                 {
+                    var animal = await _context.Animal.Include(p => p.Images)
+                                                        .FirstOrDefaultAsync(p => p.ID == animalRepo.ID);
+                    if (animal == null)
+                    {
+                        return NotFound();
+                    }
+
+                    if (animalRepo.ImagesToDelete != null && animalRepo.ImagesToDelete.Any())
+                    {
+                        var imagesToRemove = animal.Images
+                            .Where(img => animalRepo.ImagesToDelete.Contains(img.ImageUrl))
+                            .ToList();
+
+                        foreach (var image in imagesToRemove)
+                        {
+                            var fullPath = Path.Combine(_env.WebRootPath, image.ImageUrl.TrimStart('/'));
+                            if (System.IO.File.Exists(fullPath))
+                            {
+                                System.IO.File.Delete(fullPath);
+                            }
+
+                            _context.AnimalImages.Remove(image);
+                        }
+
+                        await _context.SaveChangesAsync();
+                    }
+
                     await _animalService.UpdateProductAsync(animalRepo);
+
                 }
                 catch (Exception)
                 {

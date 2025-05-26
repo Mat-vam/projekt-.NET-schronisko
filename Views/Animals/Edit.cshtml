@@ -32,11 +32,35 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Status" class="form-label">Status adopcji</label>
-                <input asp-for="Status" class="form-control" />
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" class="form-control">
+                    <option value="Adoptowany">Adoptowany</option>
+                    <option value="Niezadoptowany">Niezadoptowany</option>
+                </select>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
-
+            @if (Model.ExistingImages != null && Model.ExistingImages.Any())
+            {
+                <div class="mb-3">
+                    <label>Obecne zdjęcia (zaznacz, aby usunąć):</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        @for (int i = 0; i < Model.ExistingImages.Count; i++)
+                        {
+                            var image = Model.ExistingImages[i];
+                            <div class="position-relative m-2">
+                                <img src="@image" width="100" height="100" class="border rounded" style="object-fit:cover;" />
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="ImagesToDelete"
+                                           value="@image"
+                                           id="deleteImage_@i" />
+                                    <label class="form-check-label" for="deleteImage_@i">Usuń</label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
             <div class="mb-3">
                 <label for="Images" class="form-label">Dodaj nowe zdjęcia</label>
                 <input type="file" name="Images" multiple class="form-control" />
