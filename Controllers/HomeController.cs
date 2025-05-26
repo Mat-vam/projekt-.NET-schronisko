@@ -30,7 +30,7 @@ namespace projekt_.NET_schronisko.Controllers
 
         // G³ówna strona - Index
         public async Task<IActionResult> Index()
-        {
+        {            
             var user = await _userManager.GetUserAsync(User);
 
             if (User.Identity.IsAuthenticated)

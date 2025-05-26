@@ -4,6 +4,15 @@
 @inject UserManager<Users> UserManager
 @inject SignInManager<Users> SignInManager
 
+@if (ViewBag.OrderSuccess != null && (bool)ViewBag.OrderSuccess)
+{
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        Zamówienie zostało złożone pomyślnie.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+    </div>
+}
+
+
 @{
     ViewData["Title"] = "Produkty";
 

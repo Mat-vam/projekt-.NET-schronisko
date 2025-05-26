@@ -38,6 +38,11 @@ namespace projekt_.NET_schronisko.Controllers
         // GET: Products
         public async Task<IActionResult> Index(string category, string sortOrder)
         {
+            if (Request.Query["orderSuccess"] == "true")
+            {
+                ViewBag.OrderSuccess = true;
+            }
+            
             // ustawianie cartItemCount
             int cartCount = 0;
 
