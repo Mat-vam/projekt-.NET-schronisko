@@ -1,13 +1,20 @@
 ﻿@using projekt_.NET_schronisko.ViewModels
 @model AdminDashboardViewModel
 
-<h2>Panel Pracownika</h2>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Panel Pracownika</h2>
+        </div>
+        <div class="card-body">
+            <p class="lead">Liczba użytkowników: <strong>@Model.UserCount</strong></p>
 
-<div>
-    <p>Liczba użytkowników: @Model.UserCount</p>
-
-    <a href="/Products/Create">Dodaj produkt</a><br />
-    <a href="/Animals/Create">Dodaj zwierzaka</a><br />
-    <a href="/Orders/Index">Przeglądaj zamówienia</a><br />
-    <a href="/UserManagement/Index">Zarządzaj użytkownikami</a><br />
+            <div class="d-grid gap-2">
+                <a href="/Products/Create" class="btn btn-success btn-lg">Dodaj produkt</a>
+                <a href="/Animals/Create" class="btn btn-success btn-lg">Dodaj zwierzaka</a>
+                <a href="/Orders/Index" class="btn btn-info btn-lg text-white">Przeglądaj zamówienia</a>
+                <a href="/UserManagement/Index" class="btn btn-warning btn-lg">Zarządzaj użytkownikami</a>
+            </div>
+        </div>
+    </div>
 </div>
