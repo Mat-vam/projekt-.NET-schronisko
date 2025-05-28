@@ -21,7 +21,7 @@ public class Program
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddDbContext<ShelterContext>(options =>
         {
-            options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("schroniskoDB"));
         });
 
         // Dodaj us³ugi sesji
