@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Szczegóły";
+    bool isLoggedIn = User.Identity.IsAuthenticated;
 }
 
 <h1 class="mb-4">Szczegóły zwierzaka</h1>
@@ -55,6 +56,29 @@
                     {
                         <a asp-action="Edit" asp-route-id="@Model.ID" class="btn btn-warning me-2">Edytuj</a>
                     }
+                    else
+                    {
+                        @if (Model.Status == "Adoptowany")
+                        {
+                            <div class="alert alert-success">Ten zwierzak już znalazł dom!</div>
+                        }
+                        else
+                        {
+                            @if (isLoggedIn)
+                            {
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adoptionModal">
+                                    Złóż formularz
+                                </button>
+                            }
+                            else
+                            {
+                                <div class="d-flex gap-2">
+                                    <a href="/Account/Login" class="btn btn-warning">Zaloguj się</a>
+                                    <a href="/Account/Register" class="btn btn-outline-primary">Zarejestruj się</a>
+                                </div>
+                            }
+                        }
+                    }
                     <a asp-action="Index" class="btn btn-secondary">Powrót do listy</a>
                 </div>
             </div>
@@ -62,3 +86,77 @@
 
     </div>
 </div>
+@if (isLoggedIn)
+{
+    <!-- Modal zamówienia -->
+    <div class="modal fade" id="adoptionModal" tabindex="-1" aria-labelledby="adpotionModallLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="adoptionForm" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="adoptionModalLabel">Dane do formularza</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="AnimalID" value="@Model.ID" />
+                    <div class="mb-2">
+                        <input class="form-control" name="FullName" value="@ViewBag.FullName" readonly />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" name="Email" value="@ViewBag.UserEmail" readonly />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" name="PostalCode" placeholder="Kod pocztowy" required />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" name="City" placeholder="Miasto" required />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" name="Address" placeholder="Adres" required />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" name="PhoneNumber" placeholder="Telefon" required />
+                    </div>
+                    <div class="mb-2">
+                        <textarea class="form-control" name="AboutMe" rows="4" placeholder="Opowiedz coś o sobie" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Zatwierdź</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+<script>
+    document.getElementById("adoptionForm")?.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        data.AnimalId = parseInt(data.AnimalID);
+        delete data.AnimalID;
+
+        fetch("/Animals/SubmitAdoption", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify(data)
+        })
+            .then(async res => {
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            })
+            .then(res => {
+                if (res.success) {
+                    window.location.href = `/Animals/Index?adoptionSuccess=true`;
+                }
+            })
+            .catch(err => {
+                console.error("Błąd:", err.message);
+                alert("Wystąpił błąd: " + err.message);
+            });
+    });
+</script>

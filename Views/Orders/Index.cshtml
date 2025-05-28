@@ -7,6 +7,7 @@
         <tr>
             <th>Id</th>
             <th>Data zamówienia</th>
+            <td>Adres</td>
             <th>Status</th>
             <th>Produkty</th>
             <th>Opcje</th>
@@ -18,6 +19,7 @@
             <tr>
                 <td>@order.Id</td>
                 <td>@order.DataZamowienia</td>
+                <td>@order.DeliveryAddress</td>
                 <td>
                     <span class="badge @(order.Status == "Nowe" ? "bg-warning" : order.Status == "Realizowane" ? "bg-info" : order.Status == "Zrealizowane" ? "bg-success" : "bg-danger")">
                         @order.Status
