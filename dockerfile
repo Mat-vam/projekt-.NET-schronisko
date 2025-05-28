@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-COPY "projekt .NET schronisko.csproj" ./
+COPY "projektNETschronisko.csproj" ./
 RUN dotnet restore "projektNETschronisko.csproj"
 
 COPY . ./
@@ -14,4 +14,4 @@ COPY --from=build /app/out ./
 ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
 
-ENTRYPOINT ["dotnet", "projekt .NET schronisko.dll"]
+ENTRYPOINT ["dotnet", "projektNETschronisko.csproj.dll"]
