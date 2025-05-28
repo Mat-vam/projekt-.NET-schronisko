@@ -14,6 +14,7 @@ using projekt_.NET_schronisko.Repository;
 using projekt_.NET_schronisko.Services;
 using System.Text.Json;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using projekt_.NET_schronisko.ViewModels;
 
 
 namespace projekt_.NET_schronisko.Controllers
@@ -38,6 +39,10 @@ namespace projekt_.NET_schronisko.Controllers
         // GET: Animals
         public async Task<IActionResult> Index(string species, string adopted)
         {
+            if (Request.Query["adoptionSuccess"] == "true")
+            {
+                ViewBag.adoptSuccess = true;
+            }
             // ustawianie cartItemCount
             int cartCount = 0;
 
@@ -105,6 +110,8 @@ namespace projekt_.NET_schronisko.Controllers
                     .Include(c => c.Items)
                     .FirstOrDefaultAsync(c => c.UserId == user.Id);
                 cartCount = cart?.Items.Sum(i => i.Quantity) ?? 0;
+                ViewBag.FullName = user?.FullName ?? "";
+                ViewBag.UserEmail = user?.Email ?? "";
             }
             else
             {
@@ -280,6 +287,34 @@ namespace projekt_.NET_schronisko.Controllers
         private bool AnimalExists(int id)
         {
             return _context.Animal.Any(e => e.ID == id);
+        }
+        [HttpPost]
+        public async Task<IActionResult> SubmitAdoption([FromBody] AdoptionRequestViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { success = false, message = "Nieprawidłowe dane." });
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            var request = new AdoptionRequest
+            {
+                AnimalId = model.AnimalId,
+                FullName = user.FullName,
+                Email = user.Email,
+                PostalCode = model.PostalCode,
+                City = model.City,
+                Address = model.Address,
+                PhoneNumber = model.PhoneNumber,
+                AboutMe = model.AboutMe,
+                SubmittedAt = DateTime.Now
+            };
+
+            _context.AdoptionRequests.Add(request);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Zgłoszenie adopcji zostało zapisane." });
         }
     }
 }

@@ -1,0 +1,82 @@
+﻿@model IEnumerable<projekt_.NET_schronisko.Models.AdoptionRequest>
+@{
+    var selectedStatus = ViewBag.StatusFilter as string ?? "";
+}
+<h2>Zgłoszenia adopcyjne</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Imię i nazwisko</th>
+            <th>Email</th>
+            <th>Telefon</th>
+            <th>Adres</th>
+            <th>Miasto / Kod pocztowy</th>
+            <th>Zwierzę</th>
+            <th>Data zgłoszenia</th>
+            <th>O mnie</th>
+            <th>Status zwierzaka</th>
+            <th>Opcje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var request in Model)
+        {
+            <tr>
+                <td>@request.Id</td>
+                <td>@request.FullName</td>
+                <td>@request.Email</td>
+                <td>@request.PhoneNumber</td>
+                <td>@request.Address</td>
+                <td>@request.City @request.PostalCode</td>
+                <td>
+                    @if (request.Animal != null)
+                    {
+                        <a href="@Url.Action("Details", "Animals", new { id = request.AnimalId })" class="btn btn-link">
+                            @request.Animal.Name
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Brak danych</span>
+                    }
+                </td>
+                <td>@request.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#aboutMe_@request.Id" aria-expanded="false" aria-controls="aboutMe_@request.Id">
+                        Pokaż
+                    </button>
+                    <div class="collapse mt-2" id="aboutMe_@request.Id">
+                        <div class="card card-body">@request.AboutMe</div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge @(request.Animal.Status == "Zaadoptowany" ? "bg-success" : "bg-warning")">
+                        @request.Animal.Status
+                    </span>
+                </td>
+                <td>
+                    <form asp-action="UpdateAnimalStatus" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@request.AnimalId" />
+                        <button type="submit" name="newStatus" value="Niezaadoptowany" class="btn btn-warning btn-sm" @(request.Animal.Status == "Niezaadoptowany" ? "disabled" : "")>Niezaadoptowany</button>
+                        <button type="submit" name="newStatus" value="Zaadoptowany" class="btn btn-success btn-sm" @(request.Animal.Status == "Zaadoptowany" ? "disabled" : "")>Zaadoptowany</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<form asp-action="Index" method="get" class="row g-3 mb-4 align-items-end">
+    <div class="col-md-4">
+        <label for="statusFilter" class="form-label">Status zwierzaka:</label>
+        <select name="statusFilter" class="form-select">
+            <option value="">Wszystkie</option>
+            <option value="Niezaadoptowany" selected="@(selectedStatus == "Niezaadoptowany" ? "selected" : null)">Niezaadoptowany</option>
+            <option value="Zaadoptowany" selected="@(selectedStatus == "Zaadoptowany" ? "selected" : null)" >Zaadoptowany</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-primary w-100">Filtruj</button>
+    </div>
+</form>
