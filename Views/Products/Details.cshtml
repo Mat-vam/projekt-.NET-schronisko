@@ -58,7 +58,7 @@
                     }
                     <a asp-action="Index" class="btn btn-secondary">Powrót do listy</a>
 
-                    @if (User.IsInRole("Klient"))
+                    @if (User.IsInRole("Klient") || !User.Identity.IsAuthenticated)
                     {
                         <button id="addToCartBtn" class="btn btn-primary">Dodaj do koszyka</button>
                     }
