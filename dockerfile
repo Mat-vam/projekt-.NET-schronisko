@@ -2,10 +2,10 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 COPY "projekt .NET schronisko.csproj" ./
-RUN dotnet restore "projekt .NET schronisko.csproj"
+RUN dotnet restore "projektNETschronisko.csproj"
 
 COPY . ./
-RUN dotnet publish "projekt .NET schronisko.csproj" -c Release -o out
+RUN dotnet publish "projektNETschronisko.csproj" -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
