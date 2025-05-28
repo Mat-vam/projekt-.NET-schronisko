@@ -3,7 +3,7 @@
     public class Orders
     {
         public int Id { get; set; }
-        public DateTime DataZamowienia { get; set; } = DateTime.Now;
+        public DateTime DataZamowienia { get; set; } = DateTime.UtcNow;
         public string Status { get; set; } = "Nowe";
 
         public ICollection<OrderProduct> ProduktyZamowienia { get; set; }

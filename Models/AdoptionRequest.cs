@@ -28,7 +28,7 @@ namespace projekt_.NET_schronisko.Models
         public int AnimalId { get; set; }
         public Animal Animal { get; set; }
 
-        public DateTime SubmittedAt { get; set; } = DateTime.Now;
+        public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
 
         [Required(ErrorMessage = "Proszę napisać kilka słów o sobie.")]
         [Display(Name = "Opis osoby")]
