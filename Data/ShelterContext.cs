@@ -8,15 +8,15 @@ namespace projekt_.NET_schronisko.Data
     public class ShelterContext : IdentityDbContext<Users>
     {
         public ShelterContext(DbContextOptions options) : base(options) { }
-        public DbSet<Product> Product { get; set; }
-        public DbSet<Animal> Animal { get; set; }
-        public DbSet<Orders> Orders { get; set; }
+        public virtual DbSet<Product> Product { get; set; }
+        public virtual DbSet<Animal> Animal { get; set; }
+        public virtual DbSet<Orders> Orders { get; set; }
         public DbSet<OrderProduct> OrderProducts { get; set; }
-        public DbSet<Cart> Carts { get; set; }
-        public DbSet<CartItem> CartItems { get; set; }
+        public virtual DbSet<Cart> Carts { get; set; }
+        public virtual DbSet<CartItem> CartItems { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<AnimalImage> AnimalImages { get; set; }
-        public DbSet<AdoptionRequest> AdoptionRequests { get; set; }
+        public virtual DbSet<AdoptionRequest> AdoptionRequests { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
