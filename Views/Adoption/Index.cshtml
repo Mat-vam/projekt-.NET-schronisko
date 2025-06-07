@@ -2,25 +2,27 @@
 @{
     var selectedStatus = ViewBag.StatusFilter as string ?? "";
 }
-<h2>Zgłoszenia adopcyjne</h2>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Imię i nazwisko</th>
-            <th>Email</th>
-            <th>Telefon</th>
-            <th>Adres</th>
-            <th>Miasto / Kod pocztowy</th>
-            <th>Zwierzę</th>
-            <th>Data zgłoszenia</th>
-            <th>O mnie</th>
-            <th>Status zwierzaka</th>
-            <th>Opcje</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="container">
+    <h1 class="my-4">Zgłoszenia adopcyjne</h1>
+
+        <table class="table table-bordered table-hover align-middle">
+            <thead class ="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Imię i nazwisko</th>
+                    <th>Email</th>
+                    <th>Telefon</th>
+                    <th>Adres</th>
+                    <th>Miasto / Kod pocztowy</th>
+                    <th>Zwierzę</th>
+                    <th>Data zgłoszenia</th>
+                    <th>O mnie</th>
+                    <th>Status zwierzaka</th>
+                    <th>Opcje</th>
+                </tr>
+            </thead>
+        <tbody>
         @foreach (var request in Model)
         {
             <tr>
@@ -80,3 +82,4 @@
         <button type="submit" class="btn btn-primary w-100">Filtruj</button>
     </div>
 </form>
+</div>

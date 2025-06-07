@@ -6,8 +6,8 @@
     ViewData["Title"] = "Twój Koszyk";
     bool isLoggedIn = User.Identity.IsAuthenticated;
 }
-
-<h2>Twój Koszyk</h2>
+<div class="container">
+<h1 class="my-4">Twój Koszyk</h1>
 
 @if (Model != null && Model.Items.Any())
 {
@@ -91,15 +91,19 @@ else
                     </div>
                     <div class="mb-2">
                         <input class="form-control" name="PostalCode" placeholder="Kod pocztowy" required />
+                        <div class="text-danger field-error" data-valmsg-for="PostalCode"></div>
                     </div>
                     <div class="mb-2">
                         <input class="form-control" name="City" placeholder="Miasto" required />
+                        <div class="text-danger field-error" data-valmsg-for="City"></div>
                     </div>
                     <div class="mb-2">
                         <input class="form-control" name="Address" placeholder="Adres" required />
+                        <div class="text-danger field-error" data-valmsg-for="Address"></div>
                     </div>
                     <div class="mb-2">
                         <input class="form-control" name="PhoneNumber" placeholder="Telefon" required />
+                            <div class="text-danger field-error" data-valmsg-for="PhoneNumber"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -159,32 +163,50 @@ else
             });
         });
 
-        document.getElementById("orderForm")?.addEventListener("submit", function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const data = Object.fromEntries(formData.entries());
+            document.getElementById("orderForm")?.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
 
-            fetch("/Cart/PlaceOrder", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
-                },
-                body: JSON.stringify(data)
-            })
-                .then(async res => {
-                    if (!res.ok) throw new Error(await res.text());
-                    return res.json();
+
+                document.querySelectorAll(".field-error").forEach(div => div.textContent = "");
+
+                fetch("/Cart/PlaceOrder", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(data)
                 })
-                .then(res => {
-                    if (res.success) {
-                        window.location.href = "/Products?orderSuccess=true";
-                    }
-                })
-                .catch(err => {
-                    console.error("Błąd:", err.message);
-                    alert("Wystąpił błąd: " + err.message);
-                });
-        });
+                    .then(async res => {
+                        if (!res.ok) {
+                            const errorResponse = await res.json();
+                            if (errorResponse.errors) {
+                                for (const field in errorResponse.errors) {
+                                    const errorDiv = document.querySelector(`.field-error[data-valmsg-for="${field}"]`);
+                                    if (errorDiv) {
+                                        errorDiv.textContent = errorResponse.errors[field].join(", ");
+                                    }
+                                }
+                            } else {
+                                throw new Error(await res.text());
+                            }
+                            throw new Error("Błąd walidacji");
+                        }
+                        return res.json();
+                    })
+                    .then(res => {
+                        if (res.success) {
+                            window.location.href = "/Products?orderSuccess=true";
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Błąd:", err.message);
+
+                    });
+            });
+
     });
 </script>
+</div>

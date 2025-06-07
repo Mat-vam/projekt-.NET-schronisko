@@ -24,9 +24,9 @@ public class Program
             //zmieniac w zaleznosci od uzycia
             //zmienic tez connection string
             //to jest do bazy danych w chmurze
-            options.UseNpgsql(builder.Configuration.GetConnectionString("schroniskoDB"));
+            //options.UseNpgsql(builder.Configuration.GetConnectionString("schroniskoDB"));
             //to jest do bazy danych lokalnie
-            //options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
+            options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
         });
 
         // Dodaj us³ugi sesji

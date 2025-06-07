@@ -5,9 +5,11 @@ namespace projekt_.NET_schronisko.ViewModels
     public class RegisterViewModel
     {
         [Required(ErrorMessage = "Imie jest wymagane")]
+        [Display(Name = "Imię")]
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Email jest wymagany")]
+        [Display(Name = "E-mail")]
         [EmailAddress]
         public string Email { get; set; }
 
@@ -15,6 +17,7 @@ namespace projekt_.NET_schronisko.ViewModels
         [StringLength(40, MinimumLength = 8, ErrorMessage = "{0} musi mieć conajmniej {2} i conajwyżej {1} znaków")]
         [DataType(DataType.Password)]
         [Compare("ConfirmPassword", ErrorMessage = "Hasła się nie zgadzają")]
+        [Display(Name = "Hasło")]
         public string Password { get; set; }
 
         [Required(ErrorMessage = "Potwierdzenie hasła jest wymagane")]

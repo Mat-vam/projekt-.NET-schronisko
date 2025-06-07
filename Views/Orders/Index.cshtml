@@ -1,18 +1,21 @@
 ﻿@model IEnumerable<projekt_.NET_schronisko.Models.Orders>
 
-<h2>Przeglądaj Zamówienia</h2>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Data zamówienia</th>
-            <td>Adres</td>
-            <th>Status</th>
-            <th>Produkty</th>
-            <th>Opcje</th>
-        </tr>
-    </thead>
+<div class="container">
+<h1 class="my-4">Przeglądaj Zamówienia</h1>
+
+<div>
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Id</th>
+                <th>Data zamówienia</th>
+                <td>Adres</td>
+                <th>Status</th>
+                <th>Produkty</th>
+                <th>Opcje</th>
+            </tr>
+        </thead>
     <tbody>
         @foreach (var order in Model)
         {
@@ -26,14 +29,14 @@
                     </span>
                 </td>
                 <td>
-                    <ul>
+                    <ul class="mb-0">
                         @foreach (var orderProduct in order.ProduktyZamowienia)
                         {
                             <li>@orderProduct.Product.Name - Ilość: @orderProduct.Ilosc</li>
                         }
                     </ul>
                 </td>
-                <td>
+                <td class="text-center">
                     <a href="@Url.Action("UpdateStatus", "Orders", new { id = order.Id, newStatus = "Realizowane" })" class="btn btn-info btn-sm">W realizacji</a>
                     <a href="@Url.Action("UpdateStatus", "Orders", new { id = order.Id, newStatus = "Zrealizowane" })" class="btn btn-success btn-sm">Zrealizowane</a>
                     <a href="@Url.Action("UpdateStatus", "Orders", new { id = order.Id, newStatus = "Anulowane" })" class="btn btn-danger btn-sm">Anulowane</a>
@@ -42,7 +45,7 @@
         }
     </tbody>
 </table>
-
+</div>
 <form method="get" class="row g-3 mb-4 align-items-end">
     <div class="col-md-4">
         <label for="sortBy" class="form-label">Sortuj według:</label>
@@ -70,3 +73,4 @@
         <button type="submit" class="btn btn-primary w-100">Filtruj</button>
     </div>
 </form>
+</div>

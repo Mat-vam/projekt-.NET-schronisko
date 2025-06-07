@@ -1,6 +1,14 @@
 ﻿@model projekt_.NET_schronisko.Models.Users
 
-<h3>Szczegóły użytkownika</h3>
-<p><strong>Email:</strong> @Model.Email</p>
-<p><strong>Full Name:</strong> @Model.FullName</p>
-<p><strong>Phone:</strong> @Model.PhoneNumber</p>
+<div class="container py-5">
+    <div class="info-section">
+        <h2 class="mb-4">Szczegóły użytkownika</h2>
+
+        <p><strong>Email:</strong> <span class="text-dark">@Model.Email</span></p>
+        <p><strong>Imię i nazwisko:</strong> <span class="text-dark">@Model.FullName</span></p>
+
+        <a href="@Url.Action("Index", "UserManagement")" class="btn btn-outline-primary mt-3">
+            ← Powrót do listy użytkowników
+        </a>
+    </div>
+</div>

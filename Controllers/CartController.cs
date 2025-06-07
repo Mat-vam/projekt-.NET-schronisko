@@ -294,7 +294,16 @@ namespace projekt_.NET_schronisko.Controllers
         public async Task<IActionResult> PlaceOrder([FromBody] OrderFormViewModel model)
         {
             if (!ModelState.IsValid)
-                return BadRequest(new { success = false, message = "Błędne dane." });
+            {
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+
+                return BadRequest(new { success = false, errors });
+            }
 
             var user = await _userManager.GetUserAsync(User);
             model.FullName = user.FullName;

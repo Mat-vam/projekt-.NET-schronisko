@@ -1,8 +1,15 @@
 ﻿@model projekt_.NET_schronisko.Models.Animal
-
 @{
     ViewData["Title"] = "Szczegóły";
     bool isLoggedIn = User.Identity.IsAuthenticated;
+}
+@{
+    var request = new projekt_.NET_schronisko.ViewModels.AdoptionRequestViewModel
+            {
+                AnimalId = Model.ID,
+                FullName = ViewBag.FullName,
+                Email = ViewBag.UserEmail
+            };
 }
 
 <h1 class="mb-4">Szczegóły zwierzaka</h1>
@@ -88,7 +95,7 @@
 </div>
 @if (isLoggedIn)
 {
-    <!-- Modal zamówienia -->
+    <!-- Modal adopcyjny -->
     <div class="modal fade" id="adoptionModal" tabindex="-1" aria-labelledby="adpotionModallLabel" aria-hidden="true">
         <div class="modal-dialog">
             <form id="adoptionForm" class="modal-content">
@@ -107,18 +114,23 @@
                     </div>
                     <div class="mb-2">
                         <input class="form-control" name="PostalCode" placeholder="Kod pocztowy" required />
+                        <div class="text-danger field-error" data-valmsg-for="PostalCode"></div>
                     </div>
                     <div class="mb-2">
                         <input class="form-control" name="City" placeholder="Miasto" required />
+                        <div class="text-danger field-error" data-valmsg-for="City"></div>
                     </div>
                     <div class="mb-2">
                         <input class="form-control" name="Address" placeholder="Adres" required />
+                        <div class="text-danger field-error" data-valmsg-for="Address"></div>
                     </div>
                     <div class="mb-2">
                         <input class="form-control" name="PhoneNumber" placeholder="Telefon" required />
+                        <div class="text-danger field-error" data-valmsg-for="PhoneNumber"></div>
                     </div>
                     <div class="mb-2">
                         <textarea class="form-control" name="AboutMe" rows="4" placeholder="Opowiedz coś o sobie" required></textarea>
+                        <div class="text-danger field-error" data-valmsg-for="AboutMe"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -154,9 +166,26 @@
                     window.location.href = `/Animals/Index?adoptionSuccess=true`;
                 }
             })
-            .catch(err => {
-                console.error("Błąd:", err.message);
-                alert("Wystąpił błąd: " + err.message);
+            .catch(async err => {
+                try {
+                    const response = JSON.parse(err.message); // spróbuj sparsować JSON, jeśli to tekst
+                    if (response.errors) {
+                        // Wyczyść stare błędy
+                        document.querySelectorAll(".field-error").forEach(el => el.textContent = "");
+
+                        for (const field in response.errors) {
+                            const messages = response.errors[field];
+                            const errorContainer = document.querySelector(`[data-valmsg-for="${field}"]`);
+                            if (errorContainer) {
+                                errorContainer.textContent = messages.join(", ");
+                            }
+                        }
+                    } else {
+                        throw new Error("Nieznany format błędu.");
+                    }
+                } catch {
+                    alert("Wystąpił błąd: " + err.message);
+                }
             });
     });
 </script>
