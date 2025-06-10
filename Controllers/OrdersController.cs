@@ -19,7 +19,6 @@ namespace projekt_.NET_schronisko.Controllers
             _cartService = cartService;
         }
 
-        // GET: Orders/Index
         public async Task<IActionResult> Index(string sortBy, string statusFilter)
         {
             var ordersQuery = _context.Orders
@@ -27,16 +26,13 @@ namespace projekt_.NET_schronisko.Controllers
                 .ThenInclude(op => op.Product)
                 .AsQueryable();
 
-            // Filtrowanie po statusie
             if (!string.IsNullOrEmpty(statusFilter))
             {
                 ordersQuery = ordersQuery.Where(o => o.Status == statusFilter);
             }
 
-            // Pobierz do pamięci (potrzebne dla TotalAmount, jeśli nie jest w bazie)
             var orders = await ordersQuery.ToListAsync();
 
-            // Sortowanie w pamięci
             switch (sortBy)
             {
                 case "date_asc":
@@ -52,7 +48,7 @@ namespace projekt_.NET_schronisko.Controllers
                     orders = orders.OrderByDescending(o => o.TotalAmount).ToList();
                     break;
                 default:
-                    orders = orders.OrderByDescending(o => o.DataZamowienia).ToList(); // domyślnie najnowsze
+                    orders = orders.OrderByDescending(o => o.DataZamowienia).ToList();
                     break;
             }
 
@@ -60,7 +56,6 @@ namespace projekt_.NET_schronisko.Controllers
         }
 
 
-        // Akcja do zmiany statusu zamówienia
         public async Task<IActionResult> UpdateStatus(int id, string newStatus)
         {
             var order = await _context.Orders.FindAsync(id);

@@ -18,7 +18,6 @@ namespace projekt_.NET_schronisko.Services
 
         public async Task<Product> CreateProductAsync(ProductRepo productRepo)
         {
-            // Mapowanie DTO na encję. Możesz użyć AutoMapper lub zwykłego mapowania.
             var product = new Product
             {
                 Name = productRepo.Name,
@@ -28,9 +27,8 @@ namespace projekt_.NET_schronisko.Services
             };
 
             _context.Product.Add(product);
-            await _context.SaveChangesAsync(); // Zapisujemy, aby uzyskać wygenerowane ID produktu.
+            await _context.SaveChangesAsync();
 
-            // Obsługa przesłanych zdjęć
             if (productRepo.Images != null && productRepo.Images.Any())
             {
                 foreach (var image in productRepo.Images)
@@ -38,7 +36,7 @@ namespace projekt_.NET_schronisko.Services
                     var fileName = Path.GetFileNameWithoutExtension(image.FileName) +
                                    "_" + Guid.NewGuid() +
                                    Path.GetExtension(image.FileName);
-                    // Katalog docelowy np. wwwroot/images/products
+
                     var filePath = Path.Combine(_env.WebRootPath, "images", "products", fileName);
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
@@ -63,7 +61,6 @@ namespace projekt_.NET_schronisko.Services
 
         public async Task<Product> UpdateProductAsync(ProductRepo productRepo)
         {
-            // Wczytanie istniejącego produktu
             var product = await _context.Product.Include(p => p.Images)
                                                  .FirstOrDefaultAsync(p => p.ID == productRepo.ID);
             if (product == null)
@@ -71,7 +68,6 @@ namespace projekt_.NET_schronisko.Services
                 throw new Exception("Produkt nie został znaleziony");
             }
 
-            // Aktualizacja podstawowych danych produktu (mapowanie właściwości)
             product.Name = productRepo.Name;
             product.Price = productRepo.Price;
             product.Category = productRepo.Category;
@@ -79,7 +75,6 @@ namespace projekt_.NET_schronisko.Services
             _context.Product.Update(product);
             await _context.SaveChangesAsync();
 
-            // Obsługa nowych przesłanych zdjęć (dodanie do galerii)
             if (productRepo.Images != null && productRepo.Images.Any())
             {
                 foreach (var image in productRepo.Images)

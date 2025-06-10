@@ -95,7 +95,6 @@
 </div>
 @if (isLoggedIn)
 {
-    <!-- Modal adopcyjny -->
     <div class="modal fade" id="adoptionModal" tabindex="-1" aria-labelledby="adpotionModallLabel" aria-hidden="true">
         <div class="modal-dialog">
             <form id="adoptionForm" class="modal-content">
@@ -168,9 +167,8 @@
             })
             .catch(async err => {
                 try {
-                    const response = JSON.parse(err.message); // spróbuj sparsować JSON, jeśli to tekst
+                    const response = JSON.parse(err.message); 
                     if (response.errors) {
-                        // Wyczyść stare błędy
                         document.querySelectorAll(".field-error").forEach(el => el.textContent = "");
 
                         for (const field in response.errors) {

@@ -26,7 +26,7 @@ namespace projekt_.NET_schronisko.Controllers
 
             var requests = await query.ToListAsync();
 
-            ViewBag.StatusFilter = statusFilter; // żeby ustawić wybraną opcję w widoku
+            ViewBag.StatusFilter = statusFilter; 
 
             return View(requests);
         }

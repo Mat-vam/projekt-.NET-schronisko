@@ -18,7 +18,6 @@ namespace projekt_.NET_schronisko.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        // Zwraca liczbę produktów w koszyku użytkownika
         public async Task<int> GetCartItemCount(string userId)
         {
             var cart = await _context.Carts
@@ -28,7 +27,6 @@ namespace projekt_.NET_schronisko.Services
             return cart?.Items.Sum(i => i.Quantity) ?? 0;
         }
 
-        // Dodaje przedmiot do koszyka
         public async Task AddToCart(string userId, int productId, int quantity)
         {
             var cart = await _context.Carts
@@ -99,7 +97,7 @@ namespace projekt_.NET_schronisko.Services
 
             _context.Orders.Add(order);
 
-            _context.Carts.Remove(cart); // usunięcie całego koszyka
+            _context.Carts.Remove(cart); 
 
             await _context.SaveChangesAsync();
 

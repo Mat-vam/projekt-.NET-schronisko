@@ -204,7 +204,6 @@ namespace projekt_.NET_schronisko.Controllers
             }
             else
             {
-                // niezalogowany – sesja
                 var sessionCart = HttpContext.Session.GetString("Cart");
                 var cart = !string.IsNullOrEmpty(sessionCart)
                     ? JsonSerializer.Deserialize<Dictionary<int, int>>(sessionCart)
@@ -215,7 +214,6 @@ namespace projekt_.NET_schronisko.Controllers
                     cart.Remove(cartItemId);
                     HttpContext.Session.SetString("Cart", JsonSerializer.Serialize(cart));
 
-                    // przelicz sumę
                     decimal totalPrice = 0;
                     foreach (var kvp in cart)
                     {
@@ -262,7 +260,6 @@ namespace projekt_.NET_schronisko.Controllers
             }
             else
             {
-                // niezalogowany – operuj na sesji
                 var sessionCart = HttpContext.Session.GetString("Cart");
                 if (!string.IsNullOrEmpty(sessionCart))
                 {

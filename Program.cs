@@ -13,7 +13,6 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
         builder.Services.AddControllersWithViews();
         builder.Services.AddScoped<ICartService, CartService>();
         builder.Services.AddScoped<IProductService, ProductService>();
@@ -24,12 +23,11 @@ public class Program
             //zmieniac w zaleznosci od uzycia
             //zmienic tez connection string
             //to jest do bazy danych w chmurze
-            //options.UseNpgsql(builder.Configuration.GetConnectionString("schroniskoDB"));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("schroniskoDB"));
             //to jest do bazy danych lokalnie
-            options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
+            //options.UseSqlServer(builder.Configuration.GetConnectionString("schroniskoDB"));
         });
 
-        // Dodaj us³ugi sesji
         builder.Services.AddSession(options =>
         {
             options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -79,7 +77,6 @@ public class Program
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Home/Error");
@@ -91,7 +88,7 @@ public class Program
 
         app.UseRouting();
 
-        app.UseSession(); // ?? WA¯NE! Teraz sesja dzia³a!
+        app.UseSession();
 
         app.UseAuthentication();
         app.UseAuthorization();
@@ -100,7 +97,6 @@ public class Program
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
-        // Tworzenie ról
         using (var scope = app.Services.CreateScope())
         {
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -115,7 +111,6 @@ public class Program
             }
         }
 
-        // Tworzenie konta Pracownika
         using (var scope = app.Services.CreateScope())
         {
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Users>>();
@@ -146,7 +141,6 @@ public class Program
             }
         }
 
-        // Tworzenie konta Klienta
         using (var scope = app.Services.CreateScope())
         {
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Users>>();

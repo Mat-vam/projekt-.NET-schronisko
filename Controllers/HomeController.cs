@@ -90,13 +90,11 @@ namespace projekt_.NET_schronisko.Controllers
 
             var orders = await _cartService.GetOrdersByEmailAsync(email);
 
-            // Filtrowanie po statusie
             if (!string.IsNullOrEmpty(statusFilter))
             {
                 orders = orders.Where(o => o.Status == statusFilter).ToList();
             }
 
-            // Sortowanie
             switch (sortBy)
             {
                 case "date_asc":

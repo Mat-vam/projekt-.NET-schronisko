@@ -30,7 +30,6 @@ namespace projekt_.NET_schronisko.Models
         [Phone(ErrorMessage = "Nieprawidłowy numer telefonu.")]
         public string PhoneNumber { get; set; }
 
-        // Połączenie z modelem zwierzaka
         public int AnimalId { get; set; }
         public Animal Animal { get; set; }
 

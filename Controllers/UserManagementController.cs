@@ -21,14 +21,12 @@ namespace projekt_.NET_schronisko.Controllers
             return View(users);
         }
 
-        // Ewentualnie szczegóły użytkownika
         public async Task<IActionResult> Details(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             return user == null ? NotFound() : View(user);
         }
 
-        // Usuwanie użytkownika
         public async Task<IActionResult> Delete(string id)
         {
             var user = await _userManager.FindByIdAsync(id);

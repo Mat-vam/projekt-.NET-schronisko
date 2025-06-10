@@ -36,14 +36,12 @@ namespace projekt_.NET_schronisko.Controllers
             _cartService = cartService;
         }
 
-        // GET: Animals
         public async Task<IActionResult> Index(string species, string adopted)
         {
             if (Request.Query["adoptionSuccess"] == "true")
             {
                 ViewBag.adoptSuccess = true;
             }
-            // ustawianie cartItemCount
             int cartCount = 0;
 
             if (User.Identity.IsAuthenticated)
@@ -91,14 +89,12 @@ namespace projekt_.NET_schronisko.Controllers
 
             ViewBag.SpeciesList = speciesList;
 
-            // reszta logiki kontrolera
             var animals = await animalsQuery.ToListAsync();
             return View(animals);
 
         }
 
 
-        // GET: Animals/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             int cartCount = 0;
@@ -140,16 +136,13 @@ namespace projekt_.NET_schronisko.Controllers
             return View(animal);
         }
 
-        // GET: Animals/Create
         [Authorize(Roles = "Pracownik")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Animals/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Pracownik")]
@@ -188,9 +181,6 @@ namespace projekt_.NET_schronisko.Controllers
             return View(animalRepo);
         }
 
-        // POST: Animals/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Pracownik")]
@@ -251,7 +241,6 @@ namespace projekt_.NET_schronisko.Controllers
             return View(animalRepo);
         }
 
-        // GET: Animals/Delete/5
         [Authorize(Roles = "Pracownik")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -270,7 +259,6 @@ namespace projekt_.NET_schronisko.Controllers
             return View(animal);
         }
 
-        // POST: Animals/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

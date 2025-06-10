@@ -1,5 +1,5 @@
 body {
-    background-color: #e6f2ff; /* Jasno-niebieskie t³o */
+    background-color: #e6f2ff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #003366;
     margin: 0;
@@ -72,7 +72,7 @@ p {
     margin-bottom: 10px;
 }
 .custom-navbar {
-    background-color: #cce6ff; /* Jasnoniebieski */
+    background-color: #cce6ff;
     border-bottom: 2px solid #99ccff;
     box-shadow: 0 2px 6px rgba(0, 85, 170, 0.1);
 }

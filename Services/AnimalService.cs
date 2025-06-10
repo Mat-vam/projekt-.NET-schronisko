@@ -19,7 +19,6 @@ namespace projekt_.NET_schronisko.Services
 
         public async Task<Animal> CreateProductAsync(AnimalRepo animalRepo)
         {
-            // Mapowanie DTO na encję. Możesz użyć AutoMapper lub zwykłego mapowania.
             var animal = new Animal
             {
                 ID = animalRepo.ID,
@@ -31,9 +30,8 @@ namespace projekt_.NET_schronisko.Services
             };
 
             _context.Animal.Add(animal);
-            await _context.SaveChangesAsync(); // Zapisujemy, aby uzyskać wygenerowane ID produktu.
+            await _context.SaveChangesAsync(); 
 
-            // Obsługa przesłanych zdjęć
             if (animalRepo.Images != null && animalRepo.Images.Any())
             {
                 foreach (var image in animalRepo.Images)
@@ -41,7 +39,7 @@ namespace projekt_.NET_schronisko.Services
                     var fileName = Path.GetFileNameWithoutExtension(image.FileName) +
                                    "_" + Guid.NewGuid() +
                                    Path.GetExtension(image.FileName);
-                    // Katalog docelowy np. wwwroot/images/products
+                    
                     var filePath = Path.Combine(_env.WebRootPath, "images", "animals", fileName);
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
@@ -66,7 +64,6 @@ namespace projekt_.NET_schronisko.Services
 
         public async Task<Animal> UpdateProductAsync(AnimalRepo animalRepo)
         {
-            // Wczytanie istniejącego produktu
             var animal = await _context.Animal.Include(p => p.Images)
                                                  .FirstOrDefaultAsync(p => p.ID == animalRepo.ID);
             if (animal == null)
@@ -74,7 +71,6 @@ namespace projekt_.NET_schronisko.Services
                 throw new Exception("Produkt nie został znaleziony");
             }
 
-            // Aktualizacja podstawowych danych produktu (mapowanie właściwości)
 
 
             animal.ID = animalRepo.ID;
@@ -87,7 +83,6 @@ namespace projekt_.NET_schronisko.Services
             _context.Animal.Update(animal);
             await _context.SaveChangesAsync();
 
-            // Obsługa nowych przesłanych zdjęć (dodanie do galerii)
             if (animalRepo.Images != null && animalRepo.Images.Any())
             {
                 foreach (var image in animalRepo.Images)
